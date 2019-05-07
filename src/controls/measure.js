@@ -44,12 +44,19 @@ const Measure = function Measure({
   const buttons = [];
   let target;
 
+  const segmentOverlays = [];
+  let lastSegment = undefined;
+  let lastSegmentLength = undefined;
+  let lastSegmentOverlay = undefined;
+  let lastSegmentCoordinates = undefined;
+  let midPointCoords = undefined;
+
   function createStyle(feature) {
     const featureType = feature.getGeometry().getType();
     const measureStyle = featureType === 'LineString' ? style.createStyleRule(measureStyleOptions.linestring) : style.createStyleRule(measureStyleOptions.polygon);
-
     return measureStyle;
   }
+
   function setActive(state) {
     isActive = state;
   }
@@ -167,6 +174,73 @@ const Measure = function Measure({
     }
   }
 
+  function pointerMoveHandler2(evt) {
+    if (evt.dragging) {
+      return;
+    }
+
+    if (!sketch) {
+      return;
+    }
+
+    const geom = sketch.getGeometry();
+    const coords = geom.getCoordinates();
+
+    if (geom instanceof Polygon) {
+      lastSegmentCoordinates = [coords[0][coords[0].length - 2], coords[0][coords[0].length - 3]];
+    } else if (geom instanceof LineString) {
+      lastSegmentCoordinates = [coords[coords.length - 1], coords[coords.length - 2]];
+    }
+    // This is needed to handle a very special case there polygon has only 1 point with first click.
+    if (!lastSegmentCoordinates[1]) {
+      return;
+    }
+
+    lastSegment = new LineString(lastSegmentCoordinates);
+    lastSegmentLength = formatLength(lastSegment);
+    midPointCoords = lastSegment.getCoordinateAt(0.5);
+    lastSegmentOverlay.getElement().innerHTML = lastSegmentLength;
+    lastSegmentOverlay.setPosition(midPointCoords);
+  }
+
+  function pointerClickHandler(evt) {
+    if (!sketch) {
+      return;
+    }    
+
+    const segmentTooltipElement = document.createElement('div');
+    segmentTooltipElement.className = 'o-tooltip o-tooltip-measure';
+
+    const segmentTooltip = new Overlay({
+      element: segmentTooltipElement,
+      offset: [0, 0],
+      positioning: 'center-center',
+      stopEvent: false
+    });
+
+    segmentOverlays.push(segmentTooltip);
+    map.addOverlay(segmentTooltip);
+    lastSegmentOverlay = segmentOverlays[segmentOverlays.length - 1];
+  }
+
+  function createLastSegmentOverlay() {
+    const coords = sketch.getGeometry().getCoordinates();
+    lastSegmentCoordinates = [coords[0][coords[0].length - 1], coords[0][coords[0].length - 2]];
+
+    // This is needed to handle a very special case there polygon has only 1 point with first click.
+    if (!lastSegmentCoordinates[1]) {
+      return;
+    }
+
+    lastSegment = new LineString(lastSegmentCoordinates);
+    lastSegmentLength = formatLength(lastSegment);
+    midPointCoords = lastSegment.getCoordinateAt(0.5);
+    // There is no need to create a new Overlay here beacuse the dbclick that ends drawing fires a click event first 
+    // and therefore clickEventHandler has already created a new Overlay and changed the reference of the lastSegmentOverlay to it.
+    lastSegmentOverlay.getElement().innerHTML = lastSegmentLength;
+    lastSegmentOverlay.setPosition(midPointCoords);
+  }
+
   function disableInteraction() {
     if (activeButton) {
       document.getElementById(activeButton.getId()).classList.remove('active');
@@ -182,10 +256,12 @@ const Measure = function Measure({
     setActive(false);
 
     map.un('pointermove', pointerMoveHandler);
-    map.un('click', pointerMoveHandler);
+    map.un('pointermove', pointerMoveHandler2);
+    map.un('click', pointerClickHandler);
     map.removeInteraction(measure);
     vector.setVisible(false);
     viewer.removeOverlays(overlayArray);
+    viewer.removeOverlays(segmentOverlays);
     vector.getSource().clear();
     setActive(false);
   }
@@ -217,24 +293,31 @@ const Measure = function Measure({
     createHelpTooltip();
 
     map.on('pointermove', pointerMoveHandler);
-    map.on('click', pointerMoveHandler);
+    map.on('pointermove', pointerMoveHandler2);
+    map.on('click', pointerClickHandler);
 
     measure.on('drawstart', (evt) => {
+      // set sketch
       sketch = evt.feature;
-      document.getElementsByClassName('o-tooltip-measure')[1].classList.add('hidden');
+      helpTooltip.getElement().classList.add('hidden');
+      measureTooltip.getElement().classList.remove('hidden');
+      measureTooltip.getElement().innerHTML = sketch.getGeometry() instanceof Polygon ? `0 m<sup>2</sup>` : `0000 m`;
+      measureTooltip.setPosition(evt.feature.getGeometry().getLastCoordinate());
     }, this);
 
     measure.on('drawend', (evt) => {
       const feature = evt.feature;
       feature.setStyle(createStyle(feature));
       feature.getStyle()[0].getText().setText(label);
-      document.getElementsByClassName('o-tooltip-measure')[0].remove();
+      helpTooltip.getElement().classList.remove('hidden');
+      measureTooltip.getElement().classList.add('hidden');
+
+      // When drawing a polygon is done one last segment from last point to the first point is drawn. So we need one more Overlay.
+      if (sketch.getGeometry() instanceof Polygon) {
+        createLastSegmentOverlay();
+      }
       // unset sketch
       sketch = null;
-      // unset tooltip so that a new one can be created
-      measureTooltipElement = null;
-      createMeasureTooltip();
-      document.getElementsByClassName('o-tooltip-measure')[1].classList.remove('hidden');
     }, this);
   }
 
@@ -347,7 +430,6 @@ const Measure = function Measure({
       document.getElementById(measureElement.getId()).appendChild(el);
       if (lengthTool) {
         htmlString = lengthToolButton.render();
-        buttons.push(lengthToolButton);
         el = dom.html(htmlString);
         document.getElementById(measureElement.getId()).appendChild(el);
       }
