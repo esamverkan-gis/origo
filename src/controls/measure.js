@@ -206,7 +206,7 @@ const Measure = function Measure({
   function pointerClickHandler(evt) {
     if (!sketch) {
       return;
-    }    
+    }
 
     const segmentTooltipElement = document.createElement('div');
     segmentTooltipElement.className = 'o-tooltip o-tooltip-measure';
@@ -291,21 +291,23 @@ const Measure = function Measure({
     map.addInteraction(measure);
     createMeasureTooltip();
     createHelpTooltip();
-
     map.on('pointermove', pointerMoveHandler);
-    map.on('pointermove', pointerMoveHandler2);
-    map.on('click', pointerClickHandler);
 
     measure.on('drawstart', (evt) => {
       // set sketch
       sketch = evt.feature;
       helpTooltip.getElement().classList.add('hidden');
       measureTooltip.getElement().classList.remove('hidden');
-      measureTooltip.getElement().innerHTML = sketch.getGeometry() instanceof Polygon ? `0 m<sup>2</sup>` : `0000 m`;
+      measureTooltip.getElement().innerHTML = sketch.getGeometry() instanceof Polygon ? `0 m<sup>2</sup>` : `0 m`;
       measureTooltip.setPosition(evt.feature.getGeometry().getLastCoordinate());
+      map.on('pointermove', pointerMoveHandler2);
+      map.on('click', pointerClickHandler);
     }, this);
 
     measure.on('drawend', (evt) => {
+      // unregistering listeners first, otherwise in some rare cases one pointermove event fires before setting null on sketch
+      map.un('pointermove', pointerMoveHandler2);
+      map.un('click', pointerClickHandler);
       const feature = evt.feature;
       feature.setStyle(createStyle(feature));
       feature.getStyle()[0].getText().setText(label);
