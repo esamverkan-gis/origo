@@ -3,15 +3,19 @@ import VectorSource from 'ol/source/Vector';
 import VectorLayer from 'ol/layer/Vector';
 import DrawInteraction from 'ol/interaction/Draw';
 import Overlay from 'ol/Overlay';
+import Point from 'ol/geom/Point';
 import Polygon from 'ol/geom/Polygon';
 import LineString from 'ol/geom/LineString';
+import { transform } from 'ol/proj'
 import { Component, Element as El, Button, dom } from '../ui';
 import Style from '../style';
 import StyleTypes from '../style/styletypes';
 
 const Measure = function Measure({
   default: defaultMeasureTool = 'length',
-  measureTools = ['length', 'area']
+  measureTools = ['length', 'area'],
+  displayLengthOnAllSegments = false,
+  url: heightToolUrl
 } = {}) {
   const style = Style;
   const styleTypes = StyleTypes();
@@ -32,6 +36,7 @@ const Measure = function Measure({
   let label;
   let lengthTool;
   let areaTool;
+  let heightTool;
   let defaultTool;
   let isActive = false;
   const overlayArray = [];
@@ -41,10 +46,12 @@ const Measure = function Measure({
   let measureButton;
   let lengthToolButton;
   let areaToolButton;
+  let heightToolButton;
   const buttons = [];
   let target;
 
-  const segmentOverlays = [];
+  let segmentOverlays = [];
+  let lastSketchSegmentOverlays = [];
   let lastSegment = undefined;
   let lastSegmentLength = undefined;
   let lastSegmentOverlay = undefined;
@@ -53,7 +60,25 @@ const Measure = function Measure({
 
   function createStyle(feature) {
     const featureType = feature.getGeometry().getType();
-    const measureStyle = featureType === 'LineString' ? style.createStyleRule(measureStyleOptions.linestring) : style.createStyleRule(measureStyleOptions.polygon);
+    let measureStyle;
+
+    switch (featureType) {
+      case 'LineString':
+        measureStyle = style.createStyleRule(measureStyleOptions.linestring);
+        break;
+
+      case 'Polygon':
+        measureStyle = style.createStyleRule(measureStyleOptions.polygon);
+        break;
+
+      case 'Point':
+        measureStyle = style.createStyleRule(measureStyleOptions.point);
+        break;
+
+      default:
+        break;
+    }
+
     return measureStyle;
   }
 
@@ -142,7 +167,7 @@ const Measure = function Measure({
     return htmlElem.textContent;
   }
 
-  // Display and move tooltips with pointer
+  // Display and move tooltips with pointer. This handler function handles measureTooltip and helpTooltip
   function pointerMoveHandler(evt) {
     if (evt.dragging) {
       return;
@@ -174,12 +199,13 @@ const Measure = function Measure({
     }
   }
 
+  // This handler function handles length tooltips for each segment
   function pointerMoveHandler2(evt) {
     if (evt.dragging) {
       return;
     }
 
-    if (!sketch) {
+    if (!sketch || !displayLengthOnAllSegments) {
       return;
     }
 
@@ -204,7 +230,7 @@ const Measure = function Measure({
   }
 
   function pointerClickHandler(evt) {
-    if (!sketch) {
+    if (!sketch || !displayLengthOnAllSegments) {
       return;
     }
 
@@ -217,10 +243,9 @@ const Measure = function Measure({
       positioning: 'center-center',
       stopEvent: false
     });
-
-    segmentOverlays.push(segmentTooltip);
+    lastSketchSegmentOverlays.push(segmentTooltip);
     map.addOverlay(segmentTooltip);
-    lastSegmentOverlay = segmentOverlays[segmentOverlays.length - 1];
+    lastSegmentOverlay = lastSketchSegmentOverlays[lastSketchSegmentOverlays.length - 1];
   }
 
   function createLastSegmentOverlay() {
@@ -252,6 +277,9 @@ const Measure = function Measure({
     if (areaTool) {
       document.getElementById(areaToolButton.getId()).classList.add('hidden');
     }
+    if (heightTool) {
+      document.getElementById(heightToolButton.getId()).classList.add('hidden');
+    }
     document.getElementById(measureButton.getId()).classList.add('tooltip');
     setActive(false);
 
@@ -262,6 +290,9 @@ const Measure = function Measure({
     vector.setVisible(false);
     viewer.removeOverlays(overlayArray);
     viewer.removeOverlays(segmentOverlays);
+    viewer.removeOverlays(lastSketchSegmentOverlays);
+    lastSketchSegmentOverlays = [];
+    sketch = null;
     vector.getSource().clear();
     setActive(false);
   }
@@ -273,6 +304,9 @@ const Measure = function Measure({
     }
     if (areaTool) {
       document.getElementById(areaToolButton.getId()).classList.remove('hidden');
+    }
+    if (heightTool) {
+      document.getElementById(heightToolButton.getId()).classList.remove('hidden');
     }
     document.getElementById(measureButton.getId()).classList.remove('tooltip');
     setActive(true);
@@ -313,14 +347,52 @@ const Measure = function Measure({
       feature.getStyle()[0].getText().setText(label);
       helpTooltip.getElement().classList.remove('hidden');
       measureTooltip.getElement().classList.add('hidden');
-
+      segmentOverlays = segmentOverlays.concat(lastSketchSegmentOverlays);
+      lastSketchSegmentOverlays = [];
       // When drawing a polygon is done one last segment from last point to the first point is drawn. So we need one more Overlay.
-      if (sketch.getGeometry() instanceof Polygon) {
+      if (sketch.getGeometry() instanceof Polygon && displayLengthOnAllSegments) {
         createLastSegmentOverlay();
+      }
+      if (sketch.getGeometry() instanceof Point) {
+        handleHeight(evt);
       }
       // unset sketch
       sketch = null;
     }, this);
+  }
+
+
+  function handleHeight(evt) {
+    const feature = evt.feature;
+    const coordinates = evt.feature.getGeometry().getCoordinates();
+    feature.setStyle(createStyle(feature));
+    feature.getStyle()[0].getText().setText('Hämtar höjd...');
+    fetchHeight(coordinates)
+      .then((response) => {
+        return response.json();
+      })
+      .then((response) => {
+        const heightValue = response.geometry.coordinates[2];
+        const heightValueShortened = heightValue.toFixed(1);
+        feature.getStyle()[0].getText().setText(heightValueShortened + ' m');
+        source.changed();
+      }).catch(err => {
+        console.log(err);
+        feature.getStyle()[0].getText().setText(null);
+        source.changed();
+      });
+  }
+
+  function fetchHeight(coordinates) {
+    const projectionCode = viewer.getProjectionCode();
+    const transformedCoordinates = transform(coordinates, projectionCode, 'EPSG:3006');
+    if (!heightToolUrl) {
+      return Promise.reject("No url found in order to fetch the height");
+    }
+    const url = heightToolUrl.replace('easting', transformedCoordinates[0]).replace('northing', transformedCoordinates[1]);
+    return fetch(url, {
+      mode: "cors"
+    });
   }
 
   function toggleMeasure() {
@@ -343,11 +415,13 @@ const Measure = function Measure({
     if (activeButton) {
       document.getElementById(activeButton.getId()).classList.remove('active');
     }
-
     document.getElementById(button.getId()).classList.add('active');
     activeButton = button;
     map.removeInteraction(measure);
     addInteraction();
+    viewer.removeOverlays(lastSketchSegmentOverlays);
+    lastSketchSegmentOverlays = [];
+    sketch = null;
   }
 
   return Component({
@@ -376,8 +450,10 @@ const Measure = function Measure({
     onInit() {
       lengthTool = measureTools.indexOf('length') >= 0;
       areaTool = measureTools.indexOf('area') >= 0;
-      defaultTool = lengthTool ? defaultMeasureTool : 'area';
-      if (lengthTool || areaTool) {
+      heightTool = measureTools.indexOf('height') >= 0;
+      defaultTool = measureTools.indexOf(defaultMeasureTool) >= 0 ? defaultMeasureTool : measureTools[0];
+
+      if (lengthTool || areaTool || heightTool) {
         measureElement = El({
           tagName: 'div',
           cls: 'flex column'
@@ -404,12 +480,14 @@ const Measure = function Measure({
             tooltipPlacement: 'north'
           });
           buttons.push(lengthToolButton);
-          defaultButton = lengthToolButton;
+          if (defaultTool === 'length') {
+            defaultButton = lengthToolButton;
+          }
         }
 
         if (areaTool) {
           areaToolButton = Button({
-            cls: 'o-measure-area padding-small icon-smaller rounded light box-shadow hidden',
+            cls: 'o-measure-area padding-small margin-bottom-smaller icon-smaller rounded light box-shadow hidden',
             click() {
               type = 'Polygon';
               toggleType(this);
@@ -419,7 +497,26 @@ const Measure = function Measure({
             tooltipPlacement: 'north'
           });
           buttons.push(areaToolButton);
-          defaultButton = defaultTool === 'length' ? lengthToolButton : areaToolButton;
+          if (defaultTool === 'area') {
+            defaultButton = areaToolButton;
+          }
+        }
+
+        if (heightTool) {
+          heightToolButton = Button({
+            cls: 'o-measure-height padding-small icon-smaller rounded light box-shadow hidden',
+            click() {
+              type = 'Point';
+              toggleType(this);
+            },
+            icon: '#fa-arrows-v',
+            tooltipText: 'Höjd',
+            tooltipPlacement: 'north'
+          });
+          buttons.push(heightToolButton);
+          if (defaultTool === 'height') {
+            defaultButton = heightToolButton;
+          }
         }
       }
     },
@@ -437,6 +534,11 @@ const Measure = function Measure({
       }
       if (areaTool) {
         htmlString = areaToolButton.render();
+        el = dom.html(htmlString);
+        document.getElementById(measureElement.getId()).appendChild(el);
+      }
+      if (heightTool) {
+        htmlString = heightToolButton.render();
         el = dom.html(htmlString);
         document.getElementById(measureElement.getId()).appendChild(el);
       }

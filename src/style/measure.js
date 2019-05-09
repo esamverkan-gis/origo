@@ -53,6 +53,31 @@ const measure = {
       }
     }
   }],
+  point: [{
+    circle: {
+      radius: 4,
+      stroke: {
+        color: [255, 255, 255, 1],
+        width: 1
+      },
+      fill: {
+        color: [0, 153, 255, 1]
+      }
+    },
+    text: {
+      font: 'bold 13px "Helvetica Neue", Helvetica, Arial, sans-serif',
+      textBaseline: 'bottom',
+      textAlign: 'center',
+      offsetY: -5,
+      fill: {
+        color: [0, 153, 255, 1]
+      },
+      stroke: {
+        color: [255, 255, 255, 0.8],
+        width: 4
+      }
+    }
+  }],
   interaction: [{
     fill: {
       color: [255, 255, 255, 0.2]
