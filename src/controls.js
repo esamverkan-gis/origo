@@ -20,7 +20,4 @@ export { default as Sharemap } from './controls/sharemap';
 export { default as Splash } from './controls/splash';
 export { default as Zoom } from './controls/zoom';
 export { default as Externalurl } from './controls/externalurl';
-<<<<<<< HEAD
 export { default as Scalepicker } from './controls/scalepicker';
-=======
->>>>>>> master
