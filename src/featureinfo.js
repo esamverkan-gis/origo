@@ -38,11 +38,13 @@ const Featureinfo = function Featureinfo(options = {}) {
   let savedPin = savedPinOptions ? maputils.createPointFeature(savedPinOptions, pinStyle) : undefined;
   const savedFeature = savedPin || savedSelection || undefined;
 
-  if (showOverlay) {
-    identifyTarget = 'overlay';
-  } else {
-    sidebar.init();
-    identifyTarget = 'sidebar';
+  function setUIoutput(viewer){
+    if (showOverlay) {
+      identifyTarget = 'overlay';
+    } else {
+      sidebar.init(viewer);
+      identifyTarget = 'sidebar';
+    }
   }
 
   const clear = function clear() {
@@ -58,6 +60,7 @@ const Featureinfo = function Featureinfo(options = {}) {
     if (currentItem !== null) {
       const clone = items[currentItem].feature.clone();
       clone.setId(items[currentItem].feature.getId());
+      clone.layerName = items[currentItem].name;
       selectionLayer.clearAndAdd(
         clone,
         selectionStyles[items[currentItem].feature.getGeometry().getType()]
@@ -99,8 +102,8 @@ const Featureinfo = function Featureinfo(options = {}) {
       onChanged: callback,
       items: 1,
       nav: true,
-      navText: ['<svg class="o-icon-fa-chevron-left"><use xlink:href="#fa-chevron-left"></use></svg>',
-        '<svg class="o-icon-fa-chevron-right"><use xlink:href="#fa-chevron-right"></use></svg>'
+      navText: ['<span class="o-icon-fa-chevron-left"><</span>',
+        '<span class="o-icon-fa-chevron-right">></span>'
       ]
     };
     if (identifyTarget === 'overlay') {
@@ -123,7 +126,7 @@ const Featureinfo = function Featureinfo(options = {}) {
       selection.coordinates = firstFeature.getGeometry().getCoordinates();
       selection.id = firstFeature.getId() != null ? firstFeature.getId() : firstFeature.ol_uid;
       selection.type = typeof selectionLayer.getSourceLayer() === 'string' ? selectionLayer.getFeatureLayer().type : selectionLayer.getSourceLayer().get('type');
-      if (selection.type === 'GEOJSON' || selection.type === 'AGS_FEATURE') {
+      if (selection.type !== 'WFS') {
         const name = typeof selectionLayer.getSourceLayer() === 'string' ? selectionLayer.getSourceLayer() : selectionLayer.getSourceLayer().get('name');
         const id = firstFeature.getId() || selection.id;
         selection.id = `${name}.${id}`;
@@ -244,24 +247,6 @@ const Featureinfo = function Featureinfo(options = {}) {
     }
   };
 
-  // jQuery Events
-  const onEnableInteraction = function onEnableInteraction(e) {
-    if (e.interaction === 'featureInfo') {
-      setActive(true);
-    } else {
-      setActive(false);
-    }
-  };
-
-  // ES6 Events
-  const onToggleInteraction = function onToggleInteraction(e) {
-    if (e.detail === 'featureInfo') {
-      setActive(true);
-    } else {
-      setActive(false);
-    }
-  };
-
   return Component({
     name: 'featureInfo',
     clear,
@@ -272,10 +257,16 @@ const Featureinfo = function Featureinfo(options = {}) {
     onAdd(e) {
       viewer = e.target;
       const map = viewer.getMap();
+      setUIoutput(viewer);
       selectionLayer = featurelayer(savedFeature, map);
       map.on(clickEvent, onClick);
-      $(document).on('enableInteraction', onEnableInteraction);
-      document.addEventListener('toggleInteraction', onToggleInteraction);
+      viewer.on('toggleClickInteraction', (detail) => {
+        if ((detail.name === 'featureinfo' && detail.active) || (detail.name !== 'featureinfo' && !detail.active)) {
+          setActive(true);
+        } else {
+          setActive(false);
+        }
+      });
     },
     render
   });

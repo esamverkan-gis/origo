@@ -239,19 +239,11 @@ const Measure = function Measure({
   }
 
   function toggleMeasure() {
-    if (isActive) {
-      document.dispatchEvent(new CustomEvent('toggleInteraction', {
-        bubbles: true,
-        detail: 'featureInfo'
-      }));
-      disableInteraction();
-    } else {
-      document.dispatchEvent(new CustomEvent('toggleInteraction', {
-        bubbles: true,
-        detail: 'measure'
-      }));
-      enableInteraction();
-    }
+    const detail = {
+      name: 'measure',
+      active: !isActive
+    };
+    viewer.dispatch('toggleClickInteraction', detail);
   }
 
   function toggleType(button) {
@@ -287,6 +279,13 @@ const Measure = function Measure({
       map.addLayer(vector);
       this.addComponents(buttons);
       this.render();
+      viewer.on('toggleClickInteraction', (detail) => {
+        if (detail.name === 'measure' && detail.active) {
+          enableInteraction();
+        } else {
+          disableInteraction();
+        }
+      });
     },
     onInit() {
       lengthTool = measureTools.indexOf('length') >= 0;
@@ -299,7 +298,7 @@ const Measure = function Measure({
         });
 
         measureButton = Button({
-          cls: 'o-measure padding-small margin-bottom-smaller icon-smaller rounded light box-shadow',
+          cls: 'o-measure padding-small margin-bottom-smaller icon-smaller round light box-shadow',
           click() {
             toggleMeasure();
           },
@@ -309,7 +308,7 @@ const Measure = function Measure({
 
         if (lengthTool) {
           lengthToolButton = Button({
-            cls: 'o-measure-length padding-small margin-bottom-smaller icon-smaller rounded light box-shadow hidden',
+            cls: 'o-measure-length padding-small margin-bottom-smaller icon-smaller round light box-shadow hidden',
             click() {
               type = 'LineString';
               toggleType(this);
@@ -324,7 +323,7 @@ const Measure = function Measure({
 
         if (areaTool) {
           areaToolButton = Button({
-            cls: 'o-measure-area padding-small icon-smaller rounded light box-shadow hidden',
+            cls: 'o-measure-area padding-small icon-smaller round light box-shadow hidden',
             click() {
               type = 'Polygon';
               toggleType(this);
