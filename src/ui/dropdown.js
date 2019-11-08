@@ -41,13 +41,16 @@ export default function Dropdown(options = {}) {
       const itemEl = El({
         tagName: 'li',
         cls: 'o-dropdown-li',
-        innerHTML: `<span>${listItem}</span>`
+        innerHTML: `<span>${listItem.label}</span>`
       });
 
       document.getElementById(contentComponent.getId()).appendChild(html(itemEl.render()));
 
       document.getElementById(itemEl.getId()).addEventListener('click', () => {
         selectItem(itemEl);
+        if (listItem.onClick && typeof listItem.onClick === 'function') {
+          listItem.onClick();
+        }
       });
     });
   };
