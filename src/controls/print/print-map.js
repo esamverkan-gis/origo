@@ -24,12 +24,24 @@ export default function PrintMap(options = {}) {
     onRender() {
       this.dispatch('render');
     },
+
+    styleScaleBar(scalebar) {
+      debugger;
+      const target = scalebar.getElementsByClassName('ol-scale-singlebar')[0];
+      // eslint-disable-next-line no-plusplus
+      for (let i = 0; i < 3; i = i++) {
+        const subScaleLine = document.createElement('div').classList.add('ol-scale-singlebar-subscaleline');
+        target.appendChild(subScaleLine);
+      }
+    },
     addPrintControls() {
       const el = document.getElementById(bottomLeftMapControls.getId());
       el.appendChild(dom.html(logoComponent.render()));
 
       const scaleLine = new olScaleLine({
         className: 'print-scale-line',
+        steps: 2,
+        bar: true,
         target: bottomRightMapControls.getId()
       });
       const attribution = new olAttribution({
@@ -41,6 +53,7 @@ export default function PrintMap(options = {}) {
       mapControls = [scaleLine, attribution];
       map.addControl(scaleLine);
       map.addControl(attribution);
+    //  this.styleScaleBar(scaleLine.element);
     },
     removePrintControls() { mapControls.forEach((mapControl) => map.removeControl(mapControl)); },
     render() {

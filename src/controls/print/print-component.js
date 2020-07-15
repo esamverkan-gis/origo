@@ -23,7 +23,8 @@ const PrintComponent = function PrintComponent(options = {}) {
   let {
     size = 'a4',
     orientation = 'portrait',
-    showCreated
+    showCreated,
+    showScaleText
   } = options;
 
   let pageElement;
@@ -57,6 +58,10 @@ const PrintComponent = function PrintComponent(options = {}) {
     return showCreated ? `${createdPrefix}${today.toLocaleDateString()} ${today.toLocaleTimeString()}` : '';
   };
 
+  const scaleText = function created() {
+    return showScaleText ? getScale : '';
+  };
+
   const titleComponent = Component({
     update() { dom.replace(document.getElementById(this.getId()), this.render()); },
     render() { return `<div id="${this.getId()}" class="o-print-header h4 text-align-center empty">${title}</div>`; }
@@ -69,6 +74,10 @@ const PrintComponent = function PrintComponent(options = {}) {
     update() { dom.replace(document.getElementById(this.getId()), this.render()); },
     render() { return `<div id="${this.getId()}" class="o-print-created padding-right text-grey-dark text-align-right text-smaller empty">${created()}</div>`; }
   });
+  const scaletextComponent = Component({
+    update() { dom.replace(document.getElementById(this.getId()), this.render()); },
+    render() { return `<div id="${this.getId()}" class="o-print-created padding-right text-grey-dark text-align-right text-smaller empty">${scaleText()}</div>`; }
+  });
   const printMapComponent = PrintMap({ baseUrl: viewer.getBaseUrl(), logo, map });
 
   const printSettings = PrintSettings({
@@ -76,7 +85,8 @@ const PrintComponent = function PrintComponent(options = {}) {
     customSize: sizes.custom,
     initialSize: size,
     sizes: Object.keys(sizes),
-    showCreated
+    showCreated,
+    showScaleText
   });
   const printToolbar = PrintToolbar();
   const closeButton = Button({
@@ -135,6 +145,10 @@ const PrintComponent = function PrintComponent(options = {}) {
     toggleCreated() {
       showCreated = !showCreated;
       createdComponent.update();
+      this.updatePageSize();
+    },
+    toggleScaleText() {
+      showScaleText = !showScaleText;
       this.updatePageSize();
     },
     close() {
