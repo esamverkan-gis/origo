@@ -8,7 +8,8 @@ export default function PrintMap(options = {}) {
   const {
     baseUrl,
     logo,
-    map
+    map,
+    viewer
   } = options;
 
   let mapControls;
@@ -17,7 +18,7 @@ export default function PrintMap(options = {}) {
   const bottomLeftMapControls = El({ cls: 'flex column align-start absolute bottom-left transparent z-index-ontop-middle' });
   const bottomRightMapControls = El({ cls: 'flex column align-start absolute bottom-right transparent z-index-ontop-middle' });
   const logoComponent = Logo({ baseUrl, logo });
-  const northArrowComponent = NorthArrow({ baseUrl, logo });
+  const northArrowComponent = NorthArrow({ baseUrl, logo, map });
 
   return Component({
     onInit() {

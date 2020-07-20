@@ -3,8 +3,11 @@ import { Element as El } from '../../ui';
 export default function NorthArrow(options = {}) {
   const {
     baseUrl,
-    logo
+    logo,
+    map
   } = options;
+
+  const viewer = map.getView();
   let {
     cls = 'padding-right-small',
     src = 'css/png/north_arrow_print.png',
@@ -21,6 +24,25 @@ export default function NorthArrow(options = {}) {
   if ('style' in logo) {
     style = logo.style;
   }
+
+  const calculateDegrees = (radians) => {
+    const degrees = radians * (180 / Math.PI);
+    return degrees;
+  };
+
+  const rotateLogo = (degrees) => {
+    const target = document.getElementsByClassName('padding-right-small')[0];
+    target.style.transform = `rotate(${degrees}deg)`;
+  };
+
+  const onRotationChanged = () => {
+    const rotation = viewer.getRotation();
+    const degrees = calculateDegrees(rotation);
+    rotateLogo(degrees);
+  };
+
+  map.getView().on('change:rotation', onRotationChanged);
+
 
   return El({
     attributes: { src: `${baseUrl}${src}` },
