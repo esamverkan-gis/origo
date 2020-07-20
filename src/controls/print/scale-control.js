@@ -1,32 +1,54 @@
 import Button from '../../ui/button';
+import mapUtils from '../../maputils';
+import numberFormatter from '../../utils/numberformatter';
 
 export default function ScaleControl(options = {}) {
   let {
-    checked
+    checked,
+    map,
+    viewer
   } = options;
 
+  let mapScale = '';
+  let projection;
+  debugger;
+  const resolutions = viewer.getResolutions();
 
   const checkIcon = '#ic_check_circle_24px';
   const uncheckIcon = '#ic_radio_button_unchecked_24px';
 
   const getCheckIcon = (visible) => {
     const isVisible = visible ? checkIcon : uncheckIcon;
-    toggleMapScale();
     return isVisible;
   };
 
-  const toggleMapScale = () => {
-    const target = document.getElementsByClassName('print-map-scale-text')[0];
-    try {
-      if (target.style.display === 'block' || target.style.display === '') {
-        target.style.display = 'none';
-      } else {
-        target.style.display = 'block';
-      }
-    } catch (e) {
-      return false;
-    }
+  const roundScale = (scale) => {
+    const diff = scale % 10;
+    const scaleValue = diff !== 0 ? scale += (10 - diff) : scale;
+    return scaleValue;
   };
+
+  const getCurrentMapScale = () => {
+    const currentScale = roundScale(mapUtils.resolutionToScale(map.getView().getResolution(), projection));
+    // return currentScale >= mapscaleLimit ? currentScale : mapscaleLimit;
+    return currentScale;
+  };
+
+  const onZoomChange = () => {
+    debugger;
+    try {
+      const currentMapScale = numberFormatter(getCurrentMapScale());
+      mapScale = `1:${currentMapScale}`;
+      document.getElementsByClassName('o-print-scaletext')[0].textContent = mapScale;
+    } catch (e) {
+      console.log();
+    }
+    return mapScale;
+  };
+
+  debugger;
+  projection = map.getView().getProjection();
+  map.getView().on('change:resolution', onZoomChange);
 
   return Button({
     cls: 'round small icon-smaller no-shrink',

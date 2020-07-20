@@ -20,6 +20,8 @@ const PrintSettings = function PrintSettings({
   sizes,
   showCreated,
   showScaleText,
+  map,
+  viewer
 } = {}) {
   let headerComponent;
   let contentComponent;
@@ -85,7 +87,8 @@ const PrintSettings = function PrintSettings({
       const titleControl = TitleControl({});
       const descriptionControl = DescriptionControl();
       const marginControl = MarginControl({ checked: true });
-      const scaleControl = ScaleControl({ checked: showScaleText });
+      debugger;
+      const scaleControl = ScaleControl({ checked: showScaleText, map, viewer });
       const createdControl = CreatedControl({ checked: showCreated });
       customSizeControl = CustomSizeControl({
         state: initialSize === 'custom' ? 'active' : 'inital',
@@ -127,6 +130,7 @@ const PrintSettings = function PrintSettings({
       customSizeControl.on('change:size', (evt) => this.dispatch('change:size-custom', evt));
       titleControl.on('change', (evt) => this.dispatch('change:title', evt));
       createdControl.on('change:check', (evt) => this.dispatch('change:created', evt));
+      scaleControl.on('change:check', (evt) => this.dispatch('change:created', evt));
     },
     onChangeSize(evt) {
       const visible = evt.size === 'custom';
