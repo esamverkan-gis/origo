@@ -5,6 +5,7 @@ import printSettingsTemplate from './print-settings.template';
 import CustomSizeControl from './custom-size-control';
 import DescriptionControl from './description-control';
 import MarginControl from './margin-control';
+import GridToolControl from './gridtool-control';
 import OrientationControl from './orientation-control';
 import SizeControl from './size-control';
 import TitleControl from './title-control';
@@ -83,6 +84,7 @@ const PrintSettings = function PrintSettings({
       const titleControl = TitleControl({});
       const descriptionControl = DescriptionControl();
       const marginControl = MarginControl({ checked: true });
+      const gridToolControl = GridToolControl({ checked: true });
       const createdControl = CreatedControl({ checked: showCreated });
       customSizeControl = CustomSizeControl({
         state: initialSize === 'custom' ? 'active' : 'inital',
