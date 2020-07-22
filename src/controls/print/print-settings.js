@@ -9,6 +9,7 @@ import OrientationControl from './orientation-control';
 import SizeControl from './size-control';
 import TitleControl from './title-control';
 import CreatedControl from './created-control';
+import ResolutionControl from './resolution-control';
 
 const PrintSettings = function PrintSettings({
   closeIcon = '#ic_close_24px',
@@ -84,6 +85,7 @@ const PrintSettings = function PrintSettings({
       const descriptionControl = DescriptionControl();
       const marginControl = MarginControl({ checked: true });
       const createdControl = CreatedControl({ checked: showCreated });
+      const resolutionControl = ResolutionControl({ resolutions: [150, 300] });
       customSizeControl = CustomSizeControl({
         state: initialSize === 'custom' ? 'active' : 'inital',
         height: customSize[0],
@@ -101,11 +103,12 @@ const PrintSettings = function PrintSettings({
             orientationControl,
             sizeControl,
             titleControl,
-            createdControl
+            createdControl,
+            resolutionControl
           });
         }
       });
-      contentComponent.addComponents([customSizeControl, marginControl, orientationControl, sizeControl, titleControl, descriptionControl, createdControl]);
+      contentComponent.addComponents([customSizeControl, marginControl, orientationControl, sizeControl, titleControl, descriptionControl, createdControl, resolutionControl]);
       printSettingsContainer = Collapse({
         cls: 'no-print fixed flex column top-left rounded box-shadow bg-white overflow-hidden z-index-ontop-high',
         collapseX: true,

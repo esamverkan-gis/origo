@@ -6,7 +6,8 @@ export default function printTemplate({
   orientationControl,
   sizeControl,
   titleControl,
-  createdControl
+  createdControl,
+  resolutionControl
 }) {
   return `
   <div id="${id}" class="flex column no-print padding-large width-16">
@@ -32,6 +33,10 @@ export default function printTemplate({
     <div class="flex padding-right-small">
       <div class="grow text-normal">Visa skapad tid</div>
       ${createdControl.render()}
+    </div>
+    <div class="padding-top-large"></div>
+    <div class="flex padding-right-small">
+      ${resolutionControl.render()}
     </div>
     <div class="padding-top"></div>
   </div>`;
