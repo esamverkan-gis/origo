@@ -74,7 +74,7 @@ const PrintComponent = function PrintComponent(options = {}) {
     update() { dom.replace(document.getElementById(this.getId()), this.render()); },
     render() { return `<div id="${this.getId()}" class="o-print-created padding-right text-grey-dark text-align-right text-smaller empty">${created()}</div>`; }
   });
-  const scaletextComponent = Component({
+  const scaleComponent = Component({
     update() { dom.replace(document.getElementById(this.getId()), this.render()); },
     render() { return `<div id="${this.getId()}" class="o-print-scaletext padding-right text-grey-dark text-align-right text-smaller empty">${scaleText()}</div>`; }
   });
@@ -152,7 +152,7 @@ const PrintComponent = function PrintComponent(options = {}) {
     },
     toggleScaleText() {
       showScaleText = !showScaleText;
-      scaletextComponent.update();
+      scaleComponent.update();
       this.updatePageSize();
     },
     close() {
@@ -202,7 +202,6 @@ const PrintComponent = function PrintComponent(options = {}) {
       map.setTarget(printMapComponent.getId());
       this.removeViewerControls();
       printMapComponent.addPrintControls();
-
       this.updatePageSize();
       await loadJsPDF();
     },
@@ -220,6 +219,7 @@ const PrintComponent = function PrintComponent(options = {}) {
       viewerControls.forEach((control) => map.removeControl(control));
     },
     restoreViewerControls() {
+      printMapComponent.styleScaleBar();
       const attibutionControl = viewer.getControlByName('attribution');
       if (attibutionControl) attibutionControl.render();
       const scalelineControl = viewer.getControlByName('scaleline');
@@ -239,7 +239,7 @@ const PrintComponent = function PrintComponent(options = {}) {
             style="margin-bottom: 4rem;">
             <div class="flex column no-margin width-full height-full overflow-hidden">
   ${pageTemplate({
-    descriptionComponent, printMapComponent, titleComponent, createdComponent
+    descriptionComponent, printMapComponent, titleComponent, createdComponent, scaleComponent
   })}
             </div>
           </div>

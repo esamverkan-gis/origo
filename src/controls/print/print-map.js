@@ -10,6 +10,7 @@ export default function PrintMap(options = {}) {
     map
   } = options;
 
+  let scaleLine;
   let mapControls;
 
   const bottomLeftMapControls = El({ cls: 'flex column align-start absolute bottom-left transparent z-index-ontop-middle' });
@@ -25,9 +26,9 @@ export default function PrintMap(options = {}) {
       this.dispatch('render');
     },
 
-    styleScaleBar(scalebar) {
+    styleScaleBar() {
       debugger;
-      const target = scalebar.getElementsByClassName('ol-scale-singlebar')[0];
+      const target = scaleLine.element.getElementsByClassName('ol-scale-singlebar')[0];
       // eslint-disable-next-line no-plusplus
       for (let i = 0; i < 3; i = i++) {
         const subScaleLine = document.createElement('div').classList.add('ol-scale-singlebar-subscaleline');
@@ -38,7 +39,7 @@ export default function PrintMap(options = {}) {
       const el = document.getElementById(bottomLeftMapControls.getId());
       el.appendChild(dom.html(logoComponent.render()));
 
-      const scaleLine = new olScaleLine({
+      scaleLine = new olScaleLine({
         className: 'print-scale-line',
         steps: 2,
         bar: true,

@@ -35,27 +35,30 @@ export default function ScaleControl(options = {}) {
   };
 
   const onZoomChange = () => {
-    debugger;
     try {
       const currentMapScale = numberFormatter(getCurrentMapScale());
       mapScale = `1:${currentMapScale}`;
-      document.getElementsByClassName('o-print-scaletext')[0].textContent = mapScale;
+      if (checked) {
+        document.getElementsByClassName('o-print-scaletext')[0].textContent = mapScale;
+      }
     } catch (e) {
       console.log();
     }
     return mapScale;
   };
 
-  debugger;
+
   projection = map.getView().getProjection();
   map.getView().on('change:resolution', onZoomChange);
-
   return Button({
     cls: 'round small icon-smaller no-shrink',
     click() {
       checked = !checked;
       this.setIcon(getCheckIcon(checked));
       this.dispatch('change:check', { checked });
+      if (checked) {
+        onZoomChange();
+      }
     },
     style: {
       'align-self': 'center'
