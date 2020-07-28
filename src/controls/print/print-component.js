@@ -76,7 +76,9 @@ const PrintComponent = function PrintComponent(options = {}) {
     customSize: sizes.custom,
     initialSize: size,
     sizes: Object.keys(sizes),
-    showCreated
+    showCreated,
+    map,
+    viewer
   });
   const printToolbar = PrintToolbar();
   const closeButton = Button({
