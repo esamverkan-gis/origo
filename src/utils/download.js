@@ -60,14 +60,16 @@ const mm2Pt = function convertMm2Pt(mm) {
   return mm * factor;
 };
 
-export const html2canvas = function html2canvas(el) {
+//  https://github.com/niklasvh/html2canvas/pull/1087
+// https://github.com/niklasvh/html2canvas/pull/1087
+export const html2canvas = function html2canvas(el, dpi) {
   return convertHtml2canvas(el, {
     allowTaint: true,
     backgroundColor: null,
     logging: false,
     height: el.offsetHeight,
     width: el.offsetWidth,
-    scale: 4
+    dpi
   });
 };
 
@@ -104,14 +106,14 @@ export const downloadPDF = async function downloadPDF({
   height,
   orientation,
   size,
-  width
+  width,
+  dpi
 }) {
   await loadJsPDF();
   const format = size === 'custom' ? [mm2Pt(width), mm2Pt(height)] : size;
   const pdf = new jsPDF({ orientation, format, unit: 'mm' });
-
   if (beforeRender) beforeRender(el);
-  const canvas = await html2canvas(el);
+  const canvas = await html2canvas(el, dpi);
   if (afterRender) afterRender(el);
   pdf.addImage(canvas, 'PNG', 0, 0, pdf.internal.pageSize.getWidth(), pdf.internal.pageSize.getHeight());
   pdf.save(`${filename}.pdf`);

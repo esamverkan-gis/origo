@@ -7,7 +7,7 @@ export default function printTemplate({
   sizeControl,
   titleControl,
   createdControl,
-  resolutionControl
+  resolutionDropdown
 }) {
   return `
   <div id="${id}" class="flex column no-print padding-large width-16">
@@ -35,8 +35,9 @@ export default function printTemplate({
       ${createdControl.render()}
     </div>
     <div class="padding-top-large"></div>
-    <div class="flex padding-right-small">
-      ${resolutionControl.render()}
+    <h6>Upplösning (dpi)</h6>
+    <div class="flex padding-right-small o-print-resolution-dropdown">
+      ${resolutionDropdown.render()}
     </div>
     <div class="padding-top"></div>
   </div>`;

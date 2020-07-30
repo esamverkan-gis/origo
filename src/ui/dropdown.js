@@ -63,7 +63,6 @@ export default function Dropdown(options = {}) {
     setButtonText,
     setItems,
     onInit() {
-      debugger;
       let position;
 
       dropdownButton = Button({
@@ -115,12 +114,10 @@ export default function Dropdown(options = {}) {
       this.addComponent(containerElement);
     },
     onRender() {
-      debugger;
       setButtonText(text);
       this.dispatch('render');
     },
     render() {
-      debugger;
       return `<div id="${this.getId()}" class="${cls} relative" style="${style}">${containerElement.render()}</div>`;
     }
   });

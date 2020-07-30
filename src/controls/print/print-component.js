@@ -44,6 +44,8 @@ const PrintComponent = function PrintComponent(options = {}) {
     custom: [297, 210]
   };
 
+  let dpi = 150;
+
   const setCustomSize = function setCustomSize(sizeObj) {
     if ('width' in sizeObj) {
       sizes.custom[1] = Number(sizeObj.width);
@@ -76,6 +78,7 @@ const PrintComponent = function PrintComponent(options = {}) {
     customSize: sizes.custom,
     initialSize: size,
     sizes: Object.keys(sizes),
+    dpi,
     showCreated
   });
   const printToolbar = PrintToolbar();
@@ -100,6 +103,7 @@ const PrintComponent = function PrintComponent(options = {}) {
       printSettings.on('change:size-custom', this.changeCustomSize.bind(this));
       printSettings.on('change:title', this.changeTitle.bind(this));
       printSettings.on('change:created', this.toggleCreated.bind(this));
+      printSettings.on('dropdown:select', this.toggleResolution.bind(this));
       closeButton.on('click', this.close.bind(this));
     },
     changeDescription(evt) {
@@ -137,6 +141,11 @@ const PrintComponent = function PrintComponent(options = {}) {
       createdComponent.update();
       this.updatePageSize();
     },
+
+    toggleResolution(val) {
+      dpi = parseInt(val, 10);
+      return dpi;
+    },
     close() {
       printMapComponent.removePrintControls();
       const printElement = document.getElementById(this.getId());
@@ -173,7 +182,8 @@ const PrintComponent = function PrintComponent(options = {}) {
         height,
         orientation: pdfOrientation,
         size,
-        width
+        width,
+        dpi
       });
     },
     async onRender() {
