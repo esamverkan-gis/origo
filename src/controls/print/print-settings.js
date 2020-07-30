@@ -1,5 +1,5 @@
 import {
-  Component, Button, Element as El, Collapse
+  Component, Button, Element as El, Collapse, Dropdown
 } from '../../ui';
 import printSettingsTemplate from './print-settings.template';
 import CustomSizeControl from './custom-size-control';
@@ -25,7 +25,7 @@ const PrintSettings = function PrintSettings({
   let closeButton;
   let printSettingsContainer;
   let customSizeControl;
-
+  const resolutions = [150, 300];
   const toggle = function toggle() {
     if (openButton.getState() === 'hidden') {
       openButton.setState('initial');
@@ -84,6 +84,13 @@ const PrintSettings = function PrintSettings({
       const descriptionControl = DescriptionControl();
       const marginControl = MarginControl({ checked: true });
       const createdControl = CreatedControl({ checked: showCreated });
+      const resolutionDropdown = Dropdown({
+        text: 150,
+        cls: 'o-printmap-resolution-dropdown flex border',
+        contentCls: 'bg-white',
+        buttonCls: 'padding-small rounded',
+        buttonIconCls: ''
+      });
       customSizeControl = CustomSizeControl({
         state: initialSize === 'custom' ? 'active' : 'inital',
         height: customSize[0],
@@ -101,11 +108,12 @@ const PrintSettings = function PrintSettings({
             orientationControl,
             sizeControl,
             titleControl,
-            createdControl
+            createdControl,
+            resolutionDropdown
           });
         }
       });
-      contentComponent.addComponents([customSizeControl, marginControl, orientationControl, sizeControl, titleControl, descriptionControl, createdControl]);
+      contentComponent.addComponents([customSizeControl, marginControl, orientationControl, sizeControl, titleControl, descriptionControl, createdControl, resolutionDropdown]);
       printSettingsContainer = Collapse({
         cls: 'no-print fixed flex column top-left rounded box-shadow bg-white overflow-hidden z-index-ontop-high',
         collapseX: true,
@@ -123,6 +131,16 @@ const PrintSettings = function PrintSettings({
       customSizeControl.on('change:size', (evt) => this.dispatch('change:size-custom', evt));
       titleControl.on('change', (evt) => this.dispatch('change:title', evt));
       createdControl.on('change:check', (evt) => this.dispatch('change:created', evt));
+
+      resolutionDropdown.on('render', () => {
+        resolutionDropdown.setButtonText(resolutions[0]);
+        resolutionDropdown.setItems(resolutions);
+        document.getElementById(resolutionDropdown.getId()).addEventListener('dropdown:select', (evt) => {
+          const resolution = evt.target.textContent;
+          resolutionDropdown.setButtonText(resolution);
+          this.dispatch('dropdown:select', resolution);
+        });
+      });
     },
     onChangeSize(evt) {
       const visible = evt.size === 'custom';

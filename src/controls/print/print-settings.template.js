@@ -6,7 +6,8 @@ export default function printTemplate({
   orientationControl,
   sizeControl,
   titleControl,
-  createdControl
+  createdControl,
+  resolutionDropdown
 }) {
   return `
   <div id="${id}" class="flex column no-print padding-large width-16">
@@ -32,6 +33,11 @@ export default function printTemplate({
     <div class="flex padding-right-small">
       <div class="grow text-normal">Visa skapad tid</div>
       ${createdControl.render()}
+    </div>
+    <div class="padding-top-large"></div>
+    <h6>Upplösning (dpi)</h6>
+    <div class="flex padding-right-small o-print-resolution-dropdown">
+      ${resolutionDropdown.render()}
     </div>
     <div class="padding-top"></div>
   </div>`;
