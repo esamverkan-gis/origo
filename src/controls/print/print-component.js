@@ -219,7 +219,6 @@ const PrintComponent = function PrintComponent(options = {}) {
       viewerControls.forEach((control) => map.removeControl(control));
     },
     restoreViewerControls() {
-      printMapComponent.styleScaleBar();
       const attibutionControl = viewer.getControlByName('attribution');
       if (attibutionControl) attibutionControl.render();
       const scalelineControl = viewer.getControlByName('scaleline');

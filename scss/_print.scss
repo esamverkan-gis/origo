@@ -46,12 +46,23 @@ $print-scale-line-font-size: $font-size-smallest;
   }
 
   .ol-scale-singlebar-subscaleline {
+    height: 10px;
     width: 1px;
-    height: 15px;
-    z-index:10;
-    background-color: #000000;
-    float: right;
+    background: black;
+   // margin-left: 10%;
+    top: -1px;
+    float: left;
+    clear: both;
+    position: absolute;
+  }
+
+  .ol-scale-sub-step-marker {
+    height: 10px;
+    width: 1px;
+    background: black;
     margin-left: 10%;
+    top: 0px;
+    position: absolute;
   }
 
 

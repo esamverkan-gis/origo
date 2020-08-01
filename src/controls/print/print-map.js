@@ -17,6 +17,29 @@ export default function PrintMap(options = {}) {
   const bottomRightMapControls = El({ cls: 'flex column align-start absolute bottom-right transparent z-index-ontop-middle' });
   const logoComponent = Logo({ baseUrl, logo });
 
+  map.on('rendercomplete', () => {
+    const stepMarkers = document.getElementsByClassName('ol-scale-step-marker');
+    if (stepMarkers.length !== 0) {
+      for (let j = 0; j < stepMarkers.length; j += 1) {
+        const stepMarker = stepMarkers[j];
+        if (j === 0) {
+          stepMarker.style.top = '1px';
+        } else {
+          stepMarker.style.top = '-9px';
+        }
+      }
+      const singlebar = document.getElementsByClassName('ol-scale-singlebar')[0];
+      if (document.getElementsByClassName('ol-scale-sub-step-marker').length === 0) {
+        for (let i = 1; i < 10; i += 1) {
+          const el = document.createElement('div');
+          el.classList.add('ol-scale-sub-step-marker');
+          const margin = i * 10;
+          el.style.marginLeft = `${margin.toString()}%`;
+          singlebar.appendChild(el);
+        }
+      }
+    }
+  });
   return Component({
     onInit() {
       this.addComponent(bottomLeftMapControls);
@@ -25,20 +48,9 @@ export default function PrintMap(options = {}) {
     onRender() {
       this.dispatch('render');
     },
-
-    styleScaleBar() {
-      debugger;
-      const target = scaleLine.element.getElementsByClassName('ol-scale-singlebar')[0];
-      // eslint-disable-next-line no-plusplus
-      for (let i = 0; i < 3; i = i++) {
-        const subScaleLine = document.createElement('div').classList.add('ol-scale-singlebar-subscaleline');
-        target.appendChild(subScaleLine);
-      }
-    },
     addPrintControls() {
       const el = document.getElementById(bottomLeftMapControls.getId());
       el.appendChild(dom.html(logoComponent.render()));
-
       scaleLine = new olScaleLine({
         className: 'print-scale-line',
         steps: 2,
@@ -54,7 +66,6 @@ export default function PrintMap(options = {}) {
       mapControls = [scaleLine, attribution];
       map.addControl(scaleLine);
       map.addControl(attribution);
-    //  this.styleScaleBar(scaleLine.element);
     },
     removePrintControls() { mapControls.forEach((mapControl) => map.removeControl(mapControl)); },
     render() {

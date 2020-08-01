@@ -11,7 +11,6 @@ export default function ScaleControl(options = {}) {
 
   let mapScale = '';
   let projection;
-  debugger;
   const resolutions = viewer.getResolutions();
 
   const checkIcon = '#ic_check_circle_24px';
