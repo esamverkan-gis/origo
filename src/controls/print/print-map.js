@@ -12,6 +12,7 @@ export default function PrintMap(options = {}) {
     viewer
   } = options;
 
+  let scaleLine;
   let mapControls;
 
   const topRightMapControls = El({ cls: 'flex column align-start absolute top-right transparent z-index-ontop-middle' });
@@ -20,6 +21,29 @@ export default function PrintMap(options = {}) {
   const logoComponent = Logo({ baseUrl, logo });
   const northArrowComponent = NorthArrow({ baseUrl, logo, map });
 
+  map.on('rendercomplete', () => {
+    const stepMarkers = document.getElementsByClassName('ol-scale-step-marker');
+    if (stepMarkers.length !== 0) {
+      for (let j = 0; j < stepMarkers.length; j += 1) {
+        const stepMarker = stepMarkers[j];
+        if (j === 0) {
+          stepMarker.style.top = '1px';
+        } else {
+          stepMarker.style.top = '-9px';
+        }
+      }
+      const singlebar = document.getElementsByClassName('ol-scale-singlebar')[0];
+      if (document.getElementsByClassName('ol-scale-sub-step-marker').length === 0) {
+        for (let i = 1; i < 10; i += 1) {
+          const el = document.createElement('div');
+          el.classList.add('ol-scale-sub-step-marker');
+          const margin = i * 10;
+          el.style.marginLeft = `${margin.toString()}%`;
+          singlebar.appendChild(el);
+        }
+      }
+    }
+  });
   return Component({
     onInit() {
       this.addComponent(bottomLeftMapControls);
@@ -34,8 +58,10 @@ export default function PrintMap(options = {}) {
       const el2 = document.getElementById(topRightMapControls.getId());
       el2.appendChild(dom.html(northArrowComponent.render()));
 
-      const scaleLine = new olScaleLine({
+      scaleLine = new olScaleLine({
         className: 'print-scale-line',
+        steps: 2,
+        bar: true,
         target: bottomRightMapControls.getId()
       });
       const attribution = new olAttribution({
