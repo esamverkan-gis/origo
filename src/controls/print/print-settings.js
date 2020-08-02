@@ -118,7 +118,7 @@ const PrintSettings = function PrintSettings({
             sizeControl,
             titleControl,
             createdControl,
-            resolutionDropdown
+            resolutionDropdown,
             gridToolControl
           });
         }

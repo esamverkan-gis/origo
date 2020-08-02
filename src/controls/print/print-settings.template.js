@@ -8,7 +8,7 @@ export default function printTemplate({
   sizeControl,
   titleControl,
   createdControl,
-  gridToolControl
+  gridToolControl,
   resolutionDropdown
 }) {
   return `
