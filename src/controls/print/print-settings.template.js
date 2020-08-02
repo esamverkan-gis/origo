@@ -8,6 +8,7 @@ export default function printTemplate({
   sizeControl,
   titleControl,
   createdControl,
+  gridToolControl
   resolutionDropdown
 }) {
   return `
@@ -39,6 +40,11 @@ export default function printTemplate({
     <div class="flex padding-right-small">
       <div class="grow text-normal">Visa skapad tid</div>
       ${createdControl.render()}
+    </div>
+    <div class="padding-top-large"></div>
+    <div class="flex padding-right-small">
+      <div class="grow text-normal">Lägg till rutnät</div>
+      ${gridToolControl.render()}
     </div>
     <div class="padding-top-large"></div>
     <h6>Upplösning (dpi)</h6>

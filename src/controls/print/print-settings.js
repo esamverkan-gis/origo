@@ -5,11 +5,13 @@ import printSettingsTemplate from './print-settings.template';
 import CustomSizeControl from './custom-size-control';
 import DescriptionControl from './description-control';
 import MarginControl from './margin-control';
+import GridToolControl from './gridtool-control';
 import OrientationControl from './orientation-control';
 import SizeControl from './size-control';
 import TitleControl from './title-control';
 import CreatedControl from './created-control';
 import ScaleControl from './scale-control';
+
 
 const PrintSettings = function PrintSettings({
   closeIcon = '#ic_close_24px',
@@ -88,6 +90,7 @@ const PrintSettings = function PrintSettings({
       const descriptionControl = DescriptionControl();
       const marginControl = MarginControl({ checked: true });
       const scaleControl = ScaleControl({ checked: showScaleText, map, viewer });
+      const gridToolControl = GridToolControl({ checked: false, map, viewer });
       const createdControl = CreatedControl({ checked: showCreated });
       const resolutionDropdown = Dropdown({
         text: 150,
@@ -116,10 +119,11 @@ const PrintSettings = function PrintSettings({
             titleControl,
             createdControl,
             resolutionDropdown
+            gridToolControl
           });
         }
       });
-      contentComponent.addComponents([customSizeControl, marginControl, scaleControl, orientationControl, sizeControl, titleControl, descriptionControl, createdControl, resolutionDropdown]);
+      contentComponent.addComponents([customSizeControl, marginControl, scaleControl, orientationControl, sizeControl, titleControl, descriptionControl, createdControl, gridToolControl, resolutionDropdown]);
       printSettingsContainer = Collapse({
         cls: 'no-print fixed flex column top-left rounded box-shadow bg-white overflow-hidden z-index-ontop-high',
         collapseX: true,
