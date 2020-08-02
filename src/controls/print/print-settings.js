@@ -129,7 +129,6 @@ const PrintSettings = function PrintSettings({
       customSizeControl.on('change:size', (evt) => this.dispatch('change:size-custom', evt));
       titleControl.on('change', (evt) => this.dispatch('change:title', evt));
       createdControl.on('change:check', (evt) => this.dispatch('change:created', evt));
-      gridToolControl.on('change:check', (evt) => this.dispatch('change:created', evt));
     },
     onChangeSize(evt) {
       const visible = evt.size === 'custom';
