@@ -1,5 +1,7 @@
 import convertHtml2canvas from 'html2canvas';
 import LoadScript from './load-script';
+import {getPointResolution, get as getProjection} from 'ol/proj';
+import domtoimage from 'dom-to-image';
 
 const pdfLibUrl = 'https://unpkg.com/jspdf@latest/dist/jspdf.min.js';
 
@@ -59,6 +61,31 @@ const mm2Pt = function convertMm2Pt(mm) {
   const factor = 2.8346456692913;
   return mm * factor;
 };
+
+export const setScaleResolution(map, resolution, scale, dim) {
+  const dim = dims[format];
+  const width = Math.round((dim[0] * resolution) / 25.4);
+  const height = Math.round((dim[1] * resolution) / 25.4);
+  const viewResolution = map.getView().getResolution();
+  const scaleResolution =
+    scale /
+    getPointResolution(
+      map.getView().getProjection(),
+      resolution / 25.4,
+      map.getView().getCenter()
+    );
+    return scaleResolution;
+};
+
+export const createImg = (map, exportOptions) => {
+  
+  domtoimage.toPng(map.getViewport(), exportOptions);
+};
+
+
+
+
+
 
 //  https://github.com/niklasvh/html2canvas/pull/1087
 // https://github.com/niklasvh/html2canvas/pull/1087
