@@ -23,7 +23,8 @@ const PrintComponent = function PrintComponent(options = {}) {
   let {
     size = 'a4',
     orientation = 'portrait',
-    showCreated
+    showCreated,
+    showNorthArrow
   } = options;
 
   let pageElement;
@@ -57,6 +58,7 @@ const PrintComponent = function PrintComponent(options = {}) {
     return showCreated ? `${createdPrefix}${today.toLocaleDateString()} ${today.toLocaleTimeString()}` : '';
   };
 
+
   const titleComponent = Component({
     update() { dom.replace(document.getElementById(this.getId()), this.render()); },
     render() { return `<div id="${this.getId()}" class="o-print-header h4 text-align-center empty">${title}</div>`; }
@@ -76,7 +78,9 @@ const PrintComponent = function PrintComponent(options = {}) {
     customSize: sizes.custom,
     initialSize: size,
     sizes: Object.keys(sizes),
-    showCreated
+    map,
+    showCreated,
+    showNorthArrow: false
   });
   const printToolbar = PrintToolbar();
   const closeButton = Button({
@@ -100,6 +104,7 @@ const PrintComponent = function PrintComponent(options = {}) {
       printSettings.on('change:size-custom', this.changeCustomSize.bind(this));
       printSettings.on('change:title', this.changeTitle.bind(this));
       printSettings.on('change:created', this.toggleCreated.bind(this));
+      printSettings.on('change:northarrow', this.toggleNorthArrow.bind(this));
       closeButton.on('click', this.close.bind(this));
     },
     changeDescription(evt) {
@@ -136,6 +141,9 @@ const PrintComponent = function PrintComponent(options = {}) {
       showCreated = !showCreated;
       createdComponent.update();
       this.updatePageSize();
+    },
+    toggleNorthArrow() {
+      showNorthArrow = !showNorthArrow;
     },
     close() {
       printMapComponent.removePrintControls();

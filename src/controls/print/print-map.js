@@ -2,7 +2,7 @@ import olAttribution from 'ol/control/Attribution';
 import olScaleLine from 'ol/control/ScaleLine';
 import { dom, Component, Element as El } from '../../ui';
 import Logo from './logo';
-import NorthArrow from './north-arrow';
+import NorthArrow from './northarrow/north-arrow';
 
 export default function PrintMap(options = {}) {
   const {

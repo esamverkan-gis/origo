@@ -9,6 +9,7 @@ import OrientationControl from './orientation-control';
 import SizeControl from './size-control';
 import TitleControl from './title-control';
 import CreatedControl from './created-control';
+import NorthArrowControl from './northarrow/northarrow-control';
 
 const PrintSettings = function PrintSettings({
   closeIcon = '#ic_close_24px',
@@ -17,7 +18,8 @@ const PrintSettings = function PrintSettings({
   orientation = 'portrait',
   customSize,
   sizes,
-  showCreated
+  showCreated,
+  map
 } = {}) {
   let headerComponent;
   let contentComponent;
@@ -84,6 +86,7 @@ const PrintSettings = function PrintSettings({
       const descriptionControl = DescriptionControl();
       const marginControl = MarginControl({ checked: true });
       const createdControl = CreatedControl({ checked: showCreated });
+      const northArrowControl = NorthArrowControl({ checked: true, map });
       customSizeControl = CustomSizeControl({
         state: initialSize === 'custom' ? 'active' : 'inital',
         height: customSize[0],
@@ -101,11 +104,12 @@ const PrintSettings = function PrintSettings({
             orientationControl,
             sizeControl,
             titleControl,
-            createdControl
+            createdControl,
+            northArrowControl
           });
         }
       });
-      contentComponent.addComponents([customSizeControl, marginControl, orientationControl, sizeControl, titleControl, descriptionControl, createdControl]);
+      contentComponent.addComponents([customSizeControl, marginControl, orientationControl, sizeControl, titleControl, descriptionControl, createdControl, northArrowControl]);
       printSettingsContainer = Collapse({
         cls: 'no-print fixed flex column top-left rounded box-shadow bg-white overflow-hidden z-index-ontop-high',
         collapseX: true,
@@ -123,6 +127,7 @@ const PrintSettings = function PrintSettings({
       customSizeControl.on('change:size', (evt) => this.dispatch('change:size-custom', evt));
       titleControl.on('change', (evt) => this.dispatch('change:title', evt));
       createdControl.on('change:check', (evt) => this.dispatch('change:created', evt));
+      northArrowControl.on('change:check', (evt) => this.dispatch('change:northarrow', evt));
     },
     onChangeSize(evt) {
       const visible = evt.size === 'custom';
