@@ -15,7 +15,7 @@ const GridToolControl = function gridToolControl(options = {}) {
     bbox = [19.5, 64.8, 14.5, 61],
     cellside = 10,
     strokeColor = '#9B78BE',
-    fillColor = 'rgba(270, 35, 61, 0.1)',
+    fillColor = 'rgba(270, 35, 61, 0)',
     units = 'kilometers'
   } = options;
 
@@ -28,8 +28,15 @@ const GridToolControl = function gridToolControl(options = {}) {
     }),
     fill: new ol.Fill({
       color: fillColor
+    }),
+    text: new ol.Text({
+      font: '10px Calibri,sans-serif',
+      fill: new ol.Fill({
+        color: '#000'
+      })
     })
   });
+
 
   const checkIcon = '#ic_check_circle_24px';
   const uncheckIcon = '#ic_radio_button_unchecked_24px';
@@ -39,12 +46,23 @@ const GridToolControl = function gridToolControl(options = {}) {
     return isVisible;
   };
 
+  // Gets the number of grids in height and width.
+  const getExpanse = (layer) => {
+    const width = '';
+    const height = '';
+    const expanse = { width, height };
+    return expanse;
+  };
+
   const createGridLayer = () => {
     const squareGrids = squaregrid(bbox, cellside, { units });
     const projected = projection.toMercator(squareGrids);
+    const expanse = getExpanse(projected);
+    Object.values(projected.features).forEach(feature => {
+      feature.properties.label = 'A';
+    });
     return projected;
   };
-
 
   const toggleGridLayer = () => {
     if (checked) {
@@ -54,10 +72,16 @@ const GridToolControl = function gridToolControl(options = {}) {
         features: new GeoJSON().readFeatures(squareGrid)
       });
 
+      debugger;
       gridLayer = new VectorLayer({
         source,
-        style,
-        removable: true
+        style(feature) {
+          const label = feature.get('label');
+          style.getText().setText(label);
+          return style;
+        },
+        removable: true,
+        declutter: true
       });
       map.addLayer(gridLayer);
     } else {
