@@ -35,10 +35,12 @@ export default function ScaleControl(options = {}) {
 
   const onZoomChange = () => {
     try {
+      const scaleText = document.getElementsByClassName('o-print-scaletext')[0];
       const currentMapScale = numberFormatter(getCurrentMapScale());
+      document.getElementsByClassName('o-print-scaletext')[0].value = getCurrentMapScale();
       mapScale = `1:${currentMapScale}`;
       if (checked) {
-        document.getElementsByClassName('o-print-scaletext')[0].textContent = mapScale;
+        scaleText.textContent = mapScale;
       }
     } catch (e) {
       console.log();

@@ -29,7 +29,7 @@ const PrintSettings = function PrintSettings({
   let closeButton;
   let printSettingsContainer;
   let customSizeControl;
-  const resolutions = [150, 300];
+  const resolutions = [75, 300];
   const toggle = function toggle() {
     if (openButton.getState() === 'hidden') {
       openButton.setState('initial');

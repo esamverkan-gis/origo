@@ -13,53 +13,14 @@ let jsPDF;
 let url;
 let scaleWidth;
 let scaleHeight;
+let scaleLine;
 
 const exportOptions = {
-  filter(element) {
-    const className = element.className || '';
-    return (
-      className.indexOf('ol-control') === -1
-      || className.indexOf('ol-scale') > -1
-      || (className.indexOf('ol-attribution') > -1
-        && className.indexOf('ol-uncollapsible'))
-    );
-  }
+
 };
 
 export const loadJsPDF = async function loadJsPDF() {
   if (!jsPDF) { jsPDF = await jsPDFLoader.load(); }
-};
-
-export const downloadBlob = function downloadBlob({ blob, filename }) {
-  return new Promise((resolve) => {
-    const link = document.createElement('a');
-    url = URL.createObjectURL(blob);
-
-    // ie 11 workaround
-    if (!('download' in link) && window.navigator.msSaveOrOpenBlob) {
-      window.navigator.msSaveOrOpenBlob(blob, filename);
-      URL.revokeObjectURL(url);
-      resolve();
-      return;
-    }
-
-    if (!('download' in link)) {
-      link.target = '_blank';
-    }
-
-    link.download = filename;
-    link.href = url;
-
-    const clickHandler = () => {
-      window.setTimeout(() => {
-        URL.revokeObjectURL(url);
-        link.removeEventListener('click', clickHandler, false);
-        resolve();
-      }, 200);
-    };
-    link.addEventListener('click', clickHandler);
-    link.click();
-  });
 };
 
 
@@ -69,10 +30,9 @@ const mm2Pt = function convertMm2Pt(mm) {
 };
 
 
-export const setScaleResolution = (map, resolution, scale, size) => {
-  const dim = size;
-  scaleWidth = Math.round((dim[0] * resolution) / 25.4);
-  scaleHeight = Math.round((dim[1] * resolution) / 25.4);
+export const setScaleResolution = (map, resolution, scale) => {
+  scaleWidth = Math.round((scaleWidth * resolution) / 25.4);
+  scaleHeight = Math.round((scaleHeight * resolution) / 25.4);
   const scaleResolution = scale
     / getPointResolution(
       map.getView().getProjection(),
@@ -82,17 +42,7 @@ export const setScaleResolution = (map, resolution, scale, size) => {
   return scaleResolution;
 };
 
-export const createImg = async function createImg(el, map, type, filename, format, orientation) {
-  const viewResolution = map.getView().getResolution();
-  const scale = '10000';
-  const scaleResolution = setScaleResolution(map, viewResolution, scale, format);
-  const controls = map.getControls().getArray();
-  let scaleLine;
-  controls.forEach((control) => {
-    if (control instanceof olScaleLine) {
-      scaleLine = control;
-    }
-  });
+export const createImg = async function createImg(el, map, type, filename, format, orientation, scaleResolution) {
   scaleLine.setDpi(scaleResolution);
   map.getTargetElement().style.width = `${scaleWidth}px`;
   map.getTargetElement().style.height = `${scaleHeight}px`;
@@ -116,13 +66,6 @@ export const createImg = async function createImg(el, map, type, filename, forma
         default:
           return false;
       }
-      // Reset original map size
-      scaleLine.setDpi();
-      map.getTargetElement().style.width = '';
-      map.getTargetElement().style.height = '';
-      map.updateSize();
-      map.getView().setResolution(viewResolution);
-      document.body.style.cursor = 'auto';
     })
     .catch((error) => {
       console.error('oops, something went wrong!', error);
@@ -152,7 +95,7 @@ export const downloadPDF = async function downloadPDF({
   if (beforeRender) beforeRender(el);
   exportOptions.width = width;
   exportOptions.height = height;
-  const canvas = await createImg(el, map, filename, format);
+  const canvas = await createImg(el, map, filename, format, dpi);
   if (afterRender) afterRender(el);
   pdf.addImage(canvas, 'PNG', 0, 0, pdf.internal.pageSize.getWidth(), pdf.internal.pageSize.getHeight());
   pdf.save(`${filename}.pdf`);
@@ -164,7 +107,7 @@ export const download = async function download({
   beforeRender,
   el,
   map,
-  type,
+  type = 'pdf',
   filename,
   height,
   orientation,
@@ -172,35 +115,34 @@ export const download = async function download({
   width,
   dpi
 }) {
-  await loadJsPDF();
+  // await loadJsPDF();
+  document.body.style.cursor = 'progress';
   debugger;
   const format = size === 'custom' ? [mm2Pt(width), mm2Pt(height)] : size;
-  if (beforeRender) beforeRender(el);
-  exportOptions.width = width;
-  exportOptions.height = height;
-  if (afterRender) afterRender(el);
-  await createImg(el, map, 'png', filename, format);
-};
 
-/*
-export const downloadPDF = async function downloadPDF({
-  afterRender,
-  beforeRender,
-  el,
-  filename,
-  height,
-  orientation,
-  size,
-  width,
-  dpi
-}) {
-  await loadJsPDF();
-  const format = size === 'custom' ? [mm2Pt(width), mm2Pt(height)] : size;
-  const pdf = new jsPDF({ orientation, format, unit: 'mm' });
-  if (beforeRender) beforeRender(el);
-  const canvas = await html2canvas(el, dpi);
-  if (afterRender) afterRender(el);
-  pdf.addImage(canvas, 'PNG', 0, 0, pdf.internal.pageSize.getWidth(), pdf.internal.pageSize.getHeight());
-  pdf.save(`${filename}.pdf`);
+  const viewResolution = map.getView().getResolution();
+  const scale = (document.getElementsByClassName('o-print-scaletext')[0].value / 1000);
+  const scaleResolution = setScaleResolution(map, dpi, scale);
+  const controls = map.getControls().getArray();
+  controls.forEach((control) => {
+    if (control instanceof olScaleLine) {
+      scaleLine = control;
+    }
+  });
+
+  map.once('rendercomplete', () => {
+    debugger;
+    if (beforeRender) beforeRender(el);
+    scaleWidth = width;
+    scaleHeight = height;
+    if (afterRender) afterRender(el);
+    createImg(el, map, type, filename, format, orientation, scaleResolution);
+    // Reset original map size
+    scaleLine.setDpi();
+    map.getTargetElement().style.width = '';
+    map.getTargetElement().style.height = '';
+    map.updateSize();
+    map.getView().setResolution(viewResolution);
+    document.body.style.cursor = 'auto';
+  });
 };
-*/

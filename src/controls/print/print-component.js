@@ -90,8 +90,8 @@ const PrintComponent = function PrintComponent(options = {}) {
     showCreated,
     showScaleText,
     map,
-    viewer
-    dpi,
+    viewer,
+    dpi
   });
   const printToolbar = PrintToolbar();
   const closeButton = Button({
