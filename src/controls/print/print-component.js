@@ -7,7 +7,7 @@ import pageTemplate from './page.template';
 import PrintMap from './print-map';
 import PrintSettings from './print-settings';
 import PrintToolbar from './print-toolbar';
-import { downloadPNG, downloadPDF, loadJsPDF } from '../../utils/download';
+import { downloadPNG, downloadPDF, loadJsPDF, download } from '../../utils/download';
 import { afterRender, beforeRender } from './download-callback';
 
 const PrintComponent = function PrintComponent(options = {}) {
@@ -174,10 +174,12 @@ const PrintComponent = function PrintComponent(options = {}) {
         width = sizes[size][0];
         pdfOrientation = orientation;
       }
-      await downloadPDF({
+      await download({
         afterRender: afterRender(map),
         beforeRender: beforeRender(map),
+        map,
         el: pageElement,
+        format: 'pdf',
         filename: name,
         height,
         orientation: pdfOrientation,

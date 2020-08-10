@@ -1,7 +1,7 @@
-import convertHtml2canvas from 'html2canvas';
-import LoadScript from './load-script';
-import {getPointResolution, get as getProjection} from 'ol/proj';
+import { getPointResolution, get as getProjection } from 'ol/proj';
+import olScaleLine from 'ol/control/ScaleLine';
 import domtoimage from 'dom-to-image';
+import LoadScript from './load-script';
 
 const pdfLibUrl = 'https://unpkg.com/jspdf@latest/dist/jspdf.min.js';
 
@@ -11,6 +11,20 @@ const jsPDFLoader = LoadScript({
 });
 let jsPDF;
 let url;
+let scaleWidth;
+let scaleHeight;
+
+const exportOptions = {
+  filter(element) {
+    const className = element.className || '';
+    return (
+      className.indexOf('ol-control') === -1
+      || className.indexOf('ol-scale') > -1
+      || (className.indexOf('ol-attribution') > -1
+        && className.indexOf('ol-uncollapsible'))
+    );
+  }
+};
 
 export const loadJsPDF = async function loadJsPDF() {
   if (!jsPDF) { jsPDF = await jsPDFLoader.load(); }
@@ -48,83 +62,127 @@ export const downloadBlob = function downloadBlob({ blob, filename }) {
   });
 };
 
-const canvasToBlob = function canvasToBlob(canvas) {
-  const promise = new Promise((resolve) => {
-    canvas.toBlob((blob) => {
-      resolve(blob);
-    });
-  });
-  return promise;
-};
 
 const mm2Pt = function convertMm2Pt(mm) {
   const factor = 2.8346456692913;
   return mm * factor;
 };
 
-export const setScaleResolution(map, resolution, scale, dim) {
-  const dim = dims[format];
-  const width = Math.round((dim[0] * resolution) / 25.4);
-  const height = Math.round((dim[1] * resolution) / 25.4);
-  const viewResolution = map.getView().getResolution();
-  const scaleResolution =
-    scale /
-    getPointResolution(
+
+export const setScaleResolution = (map, resolution, scale, size) => {
+  const dim = size;
+  scaleWidth = Math.round((dim[0] * resolution) / 25.4);
+  scaleHeight = Math.round((dim[1] * resolution) / 25.4);
+  const scaleResolution = scale
+    / getPointResolution(
       map.getView().getProjection(),
       resolution / 25.4,
       map.getView().getCenter()
     );
-    return scaleResolution;
+  return scaleResolution;
 };
 
-export const createImg = (map, exportOptions) => {
-  
-  domtoimage.toPng(map.getViewport(), exportOptions);
-};
-
-
-
-
-
-
-//  https://github.com/niklasvh/html2canvas/pull/1087
-// https://github.com/niklasvh/html2canvas/pull/1087
-export const html2canvas = function html2canvas(el, dpi) {
-  return convertHtml2canvas(el, {
-    allowTaint: true,
-    backgroundColor: null,
-    logging: false,
-    height: el.offsetHeight,
-    width: el.offsetWidth,
-    dpi
+export const createImg = async function createImg(el, map, type, filename, format, orientation) {
+  const viewResolution = map.getView().getResolution();
+  const scale = '10000';
+  const scaleResolution = setScaleResolution(map, viewResolution, scale, format);
+  const controls = map.getControls().getArray();
+  let scaleLine;
+  controls.forEach((control) => {
+    if (control instanceof olScaleLine) {
+      scaleLine = control;
+    }
   });
+  scaleLine.setDpi(scaleResolution);
+  map.getTargetElement().style.width = `${scaleWidth}px`;
+  map.getTargetElement().style.height = `${scaleHeight}px`;
+  map.updateSize();
+  map.getView().setResolution(scaleResolution);
+  domtoimage.toPng(el, exportOptions)
+    .then((dataUrl) => {
+      debugger;
+      switch (type) {
+        case 'png':
+          const link = document.createElement('a');
+          link.download = filename;
+          link.href = dataUrl;
+          link.click();
+          break;
+        case 'pdf':
+          const pdf = new jsPDF({ orientation, format, unit: 'mm' });
+          pdf.addImage(dataUrl, 'PNG', 0, 0, pdf.internal.pageSize.getWidth(), pdf.internal.pageSize.getHeight());
+          pdf.save(`${filename}.pdf`);
+          break;
+        default:
+          return false;
+      }
+      // Reset original map size
+      scaleLine.setDpi();
+      map.getTargetElement().style.width = '';
+      map.getTargetElement().style.height = '';
+      map.updateSize();
+      map.getView().setResolution(viewResolution);
+      document.body.style.cursor = 'auto';
+    })
+    .catch((error) => {
+      console.error('oops, something went wrong!', error);
+    });
+
+  // domtoimage.toPng(map.getViewport(), exportOptions);
 };
 
-export const getImageBlob = async function getImageBlob(el) {
-  if (el) {
-    const canvas = await html2canvas(el);
-    const blob = await canvasToBlob(canvas);
-    return blob;
-  }
-  throw new Error('Failed to create image blob from canvas');
-};
 
-export const downloadPNG = async function downloadPNG({
+// New function to download pdf file
+export const downloadPDF = async function downloadPDF({
   afterRender,
   beforeRender,
+  map,
+  el,
   filename,
-  el
+  height,
+  orientation,
+  size,
+  width,
+  dpi
 }) {
+  await loadJsPDF();
+  debugger;
+  const format = size === 'custom' ? [mm2Pt(width), mm2Pt(height)] : size;
+  const pdf = new jsPDF({ orientation, format, unit: 'mm' });
   if (beforeRender) beforeRender(el);
-  const blob = await getImageBlob(el);
+  exportOptions.width = width;
+  exportOptions.height = height;
+  const canvas = await createImg(el, map, filename, format);
   if (afterRender) afterRender(el);
-  try {
-    await downloadBlob({ blob, filename });
-  } catch (err) {
-    console.error(err);
-  }
+  pdf.addImage(canvas, 'PNG', 0, 0, pdf.internal.pageSize.getWidth(), pdf.internal.pageSize.getHeight());
+  pdf.save(`${filename}.pdf`);
 };
 
+
+export const download = async function download({
+  afterRender,
+  beforeRender,
+  el,
+  map,
+  type,
+  filename,
+  height,
+  orientation,
+  size,
+  width,
+  dpi
+}) {
+  await loadJsPDF();
+  debugger;
+  const format = size === 'custom' ? [mm2Pt(width), mm2Pt(height)] : size;
+  if (beforeRender) beforeRender(el);
+  exportOptions.width = width;
+  exportOptions.height = height;
+  if (afterRender) afterRender(el);
+  await createImg(el, map, 'png', filename, format);
+};
+
+/*
 export const downloadPDF = async function downloadPDF({
   afterRender,
   beforeRender,
@@ -145,3 +203,4 @@ export const downloadPDF = async function downloadPDF({
   pdf.addImage(canvas, 'PNG', 0, 0, pdf.internal.pageSize.getWidth(), pdf.internal.pageSize.getHeight());
   pdf.save(`${filename}.pdf`);
 };
+*/
