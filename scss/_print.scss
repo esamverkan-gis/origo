@@ -10,6 +10,7 @@ $print-scale-line-color: $grey-darker;
 $print-scale-line-inner-border-radius: $print-control-border-radius;
 $print-scale-line-font-size: $font-size-smallest;
 
+/*
 // scale-line
 .print-scale-line {
   background: $print-control-bg-color;
@@ -27,6 +28,71 @@ $print-scale-line-font-size: $font-size-smallest;
   margin: 1px;
   will-change: contents, width;
   transition: all 0.25s;
+}
+*/
+
+
+// Custom scaleline
+
+
+  .print-scale-line { 
+    
+  display:flex;
+  
+  @at-root .bottom-right {
+    bottom: 1rem;
+    right: 2.5rem !important;
+  }
+  }
+
+  .ol-scale-singlebar-subscaleline {
+    height: 10px;
+    width: 1px;
+    background: black;
+   // margin-left: 10%;
+    top: -1px;
+    float: left;
+    clear: both;
+    position: absolute;
+  }
+
+  .ol-scale-sub-step-marker {
+    height: 10px;
+    width: 1px;
+    background: black;
+    margin-left: 10%;
+    top: 0px;
+    position: absolute;
+  }
+
+
+.ol-scale-step-marker {
+  width: 1px;
+  height: 15px;
+  background-color: #000000;
+  float: right;
+  z-Index: 10;
+}
+
+.ol-scale-step-text {
+  position: absolute;
+    top: -20px;
+    font-size: 10px;
+    font-weight: bold;
+    z-Index: 11;
+    color: #000000;
+}
+
+.ol-scale-singlebar {
+  position: relative;
+  height: 10px;
+  top: 7px;
+  z-Index: 9;
+  /* border-style: solid; */
+  /* border-color: black; */
+  border-bottom: 1px solid black;
+  /* border: 1px solid black; */
+  background-color: transparent !important;
 }
 
 // atrribution
