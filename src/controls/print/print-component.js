@@ -143,6 +143,9 @@ const PrintComponent = function PrintComponent(options = {}) {
       printMapComponent.removePrintControls();
       const printElement = document.getElementById(this.getId());
       map.setTarget(viewerMapTarget);
+      map.getLayers().getArray()
+        .filter(layer => (layer.get('name') === 'printmap-squaregrid-layer' || layer.get('name') === 'printmap-squaregrid-labels'))
+        .forEach(layer => map.removeLayer(layer));
       this.restoreViewerControls();
       printElement.remove();
     },

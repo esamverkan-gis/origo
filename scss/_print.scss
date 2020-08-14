@@ -70,6 +70,46 @@ $print-scale-line-font-size: $font-size-smallest;
   display: none;
 }
 
+
+#printmap-gridtool-menu-container {
+  display:none;
+  height: auto;
+  width: 100%;
+
+  label {
+    font-weight: normal;
+  }
+}
+
+#printmap-gridtool-colorpicker {
+  padding:0;
+}
+
+#printmap-gridtool-gridsize-input {
+  width:35%;
+}
+
+#printmap-gridtool-unit-options {
+  float:right;
+}
+
+#printmap-gridtool-draw-button {
+  width: 45%;
+  font-size: medium;
+  float:right;
+  color:white;
+  background:green;
+}
+
+#printmap-gridtool-remove-button {
+  width: 45%;
+  font-size: medium;
+  background: red;
+  margin-left: 1em;
+  color:white;
+  float:left;
+}
+
 // media print settings
 @media print {
   .no-print {
