@@ -5,6 +5,7 @@ export default function Main(options = {}) {
     cls: clsSettings = ''
   } = options;
 
+  // ...
   const cls = `${clsSettings} o-main transparent relative flex column grow transparent height-full no-margin`.trim();
   const navigation = El({ cls: 'o-navigation flex column relative transparent spacing-vertical-small' });
   const mapTools = El({ cls: 'o-maptools flex column relative transparent spacing-vertical-small' });
