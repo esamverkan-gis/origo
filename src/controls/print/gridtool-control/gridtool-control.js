@@ -15,7 +15,7 @@ class GridToolControl {
     this.gridLayer = undefined;
     this.gridLabels = undefined;
     this.style = undefined;
-    this.expanse = undefined;
+    this.axisCoordinates = undefined;
 
     this.addEvents();
     this.setStyle();
@@ -51,7 +51,7 @@ class GridToolControl {
   }
 
   // Gets the number of grids in height and width.
-  getExpanse(layer) {
+  getAxisCoordinates(layer) {
     const horizontal = [];
     const vertical = [];
     let checkNorth;
@@ -60,6 +60,7 @@ class GridToolControl {
     let east;
     let south;
     debugger;
+    // extent in minX, minY, maxX, maxY order
     for (let i = 0; i < layer.features.length; i += 1) {
       north = layer.features[i].geometry.coordinates[0][0][1];
       south = layer.features[i].geometry.coordinates[0][2][1];
@@ -85,13 +86,13 @@ class GridToolControl {
       vertical.push([(north - ((north - south) / 2)), (west - 10)]);
     }
     debugger;
-    this.expanse = { horizontal, vertical };
-    return this.expanse;
+    this.axisCoordinates = { horizontal, vertical };
+    return this.axisCoordinates;
   }
 
   // Adds horizontal and vertical labels on x- and y-axis.
   createGridLabels(grid) {
-    const bounds = this.getExpanse(grid);
+    const bounds = this.getAxisCoordinates(grid);
     const features = [];
     let horizontalIndex = 64;
     for (let i = 0; i < bounds.horizontal.length; i += 1) {

@@ -1,16 +1,13 @@
-
-import GeoJSON from 'ol/format/GeoJSON';
 import VectorLayer from 'ol/layer/Vector';
 import VectorSource from 'ol/source/Vector';
-import Draw, { createRegularPolygon } from 'ol/interaction/Draw';
+import proj4 from 'proj4';
+import Draw, { createBox } from 'ol/interaction/Draw';
 import Button from '../../../ui/button';
-import GridControl from './gridtool-control';
 import GridToolControl from './gridtool-control';
 
 const GridToolMenu = function gridToolMenu(options = {}) {
   let {
     map,
-    viewer,
     checked,
     // extent in minX, minY, maxX, maxY order
     bbox = [19.5, 64.8, 14.5, 61],
@@ -47,8 +44,7 @@ const GridToolMenu = function gridToolMenu(options = {}) {
       gridcontrol.remove();
     }
     gridcontrol = new GridToolControl({
-      // extent in minX, minY, maxX, maxY order
-      bbox: [19.5, 64.8, 14.5, 61],
+      bbox,
       cellside,
       strokeColor,
       fillColor: 'rgba(270, 35, 61, 0)',
@@ -57,16 +53,30 @@ const GridToolMenu = function gridToolMenu(options = {}) {
     gridcontrol.add();
   };
 
+
   function drawGridArea() {
-    debugger;
-    const geometryFunction = createRegularPolygon(4);
+    const geometryFunction = createBox();
     draw = new Draw({
       snapTolerance: 1,
       source,
-      type: 'Square',
+      type: 'Circle',
       geometryFunction
     });
     map.addInteraction(draw);
+    draw.once('drawend', () => {
+      if (draw !== undefined) {
+        draw.finishDrawing();
+        debugger;
+        // eslint-disable-next-line no-underscore-dangle
+        const coords = draw.sketchCoords_.flat().sort();
+        const sw = proj4(proj4.defs('EPSG:3857'), proj4.defs('EPSG:4326'), [coords[0], coords[3]]);
+        const ne = proj4(proj4.defs('EPSG:3857'), proj4.defs('EPSG:4326'), [coords[1], coords[2]]);
+        bbox = [sw[0], sw[1], ne[0], ne[1]];
+        map.removeInteraction(draw);
+        draw = undefined;
+        addGridLayer();
+      }
+    });
   }
 
   const toggleGridLayerMenu = () => {
@@ -88,15 +98,6 @@ const GridToolMenu = function gridToolMenu(options = {}) {
     }
   };
 
-  map.on('dblclick', () => {
-    debugger;
-    if (draw !== undefined) {
-      bbox = vector.getExtent();
-      map.removeInteraction(draw);
-      draw = undefined;
-      addGridLayer();
-    }
-  });
 
   const getCheckIcon = (visible) => {
     const isVisible = visible ? checkIcon : uncheckIcon;
