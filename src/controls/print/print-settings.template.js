@@ -52,7 +52,7 @@ export default function printTemplate({
     </select>
     <br/>
     <button class="grow light text-smaller padding-left-large o-tooltip active" id="printmap-gridtool-draw-button">Rita rutnät</button>
-    <button class="text-smaller padding-left-large o-tooltip active" id="printmap-gridtool-remove-button" class="abort">Avbryt</button>
+    <button class="text-smaller padding-left-large o-tooltip active abort" id="printmap-gridtool-remove-button">Avbryt</button>
     </div>
     <div class="padding-top"></div>
   </div>`;

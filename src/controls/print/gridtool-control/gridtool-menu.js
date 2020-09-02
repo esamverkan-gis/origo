@@ -1,3 +1,4 @@
+/* eslint-disable no-underscore-dangle */
 import VectorLayer from 'ol/layer/Vector';
 import VectorSource from 'ol/source/Vector';
 import proj4 from 'proj4';
@@ -13,18 +14,11 @@ const GridToolMenu = function gridToolMenu(options = {}) {
     bbox = [19.5, 64.8, 14.5, 61],
     cellside = 50,
     strokeColor = '#9B78BE',
-    fillColor = 'rgba(270, 35, 61, 0)',
     units = 'kilometers'
   } = options;
 
   let gridcontrol;
-  const source = new VectorSource({ wrapX: false });
 
-  const vector = new VectorLayer({
-    source
-  });
-
-  map.addLayer(vector);
 
   let draw;
   let gridtoolMenuContainer;
@@ -53,8 +47,14 @@ const GridToolMenu = function gridToolMenu(options = {}) {
     gridcontrol.add();
   };
 
+  const source = new VectorSource({ wrapX: false });
+  const vector = new VectorLayer({
+    source
+  });
 
   function drawGridArea() {
+    source.clear();
+    map.addLayer(vector);
     const geometryFunction = createBox();
     draw = new Draw({
       snapTolerance: 1,
@@ -63,21 +63,28 @@ const GridToolMenu = function gridToolMenu(options = {}) {
       geometryFunction
     });
     map.addInteraction(draw);
-    draw.once('drawend', () => {
+    draw.on('drawend', () => {
       if (draw !== undefined) {
-        draw.finishDrawing();
-        debugger;
-        // eslint-disable-next-line no-underscore-dangle
         const coords = draw.sketchCoords_.flat().sort();
         const sw = proj4(proj4.defs('EPSG:3857'), proj4.defs('EPSG:4326'), [coords[0], coords[3]]);
         const ne = proj4(proj4.defs('EPSG:3857'), proj4.defs('EPSG:4326'), [coords[1], coords[2]]);
         bbox = [sw[0], sw[1], ne[0], ne[1]];
         map.removeInteraction(draw);
+        source.clear();
+        map.removeLayer(vector);
         draw = undefined;
         addGridLayer();
       }
     });
   }
+
+  function removeGridArea(e) {
+    debugger;
+      gridtoolMenuContainer.style.display = 'none';
+      gridcontrol.remove();
+      gridcontrol = undefined;
+    
+  };
 
   const toggleGridLayerMenu = () => {
     gridColorInput = document.getElementById('printmap-gridtool-colorpicker');
@@ -86,8 +93,11 @@ const GridToolMenu = function gridToolMenu(options = {}) {
     };
     gridSizeOption = document.getElementById('printmap-gridtool-gridsize-input');
     gridUnitOption = document.getElementById('printmap-gridtool-unit-options');
-    const btn = document.getElementById('printmap-gridtool-draw-button');
-    btn.addEventListener('click', drawGridArea);
+    const drawBtn = document.getElementById('printmap-gridtool-draw-button');
+    const removeBtn = document.getElementById('printmap-gridtool-remove-button');
+    debugger;
+    drawBtn.addEventListener('click', drawGridArea);
+    removeBtn.addEventListener('click', removeGridArea);
     gridtoolMenuContainer = document.getElementById('printmap-gridtool-menu-container');
     if (checked) {
       gridtoolMenuContainer.style.display = 'block';

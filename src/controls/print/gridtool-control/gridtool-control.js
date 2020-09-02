@@ -1,3 +1,4 @@
+/* eslint-disable no-underscore-dangle */
 import GeoJSON from 'ol/format/GeoJSON';
 import VectorLayer from 'ol/layer/Vector';
 import VectorSource from 'ol/source/Vector';
@@ -15,7 +16,7 @@ class GridToolControl {
     this.gridLayer = undefined;
     this.gridLabels = undefined;
     this.style = undefined;
-    this.axisCoordinates = undefined;
+    this.labelAxisCoordinates = undefined;
 
     this.addEvents();
     this.setStyle();
@@ -41,7 +42,7 @@ class GridToolControl {
         color: this.options.fillColor
       }),
       text: new ol.Text({
-        font: '10px Calibri,sans-serif',
+        font: '14px Calibri,sans-serif',
         fill: new ol.Fill({
           color: '#000'
         })
@@ -51,7 +52,7 @@ class GridToolControl {
   }
 
   // Gets the number of grids in height and width.
-  getAxisCoordinates(layer) {
+  getLabelAxisCoordinates(layer) {
     const horizontal = [];
     const vertical = [];
     let checkNorth;
@@ -59,40 +60,34 @@ class GridToolControl {
     let west;
     let east;
     let south;
-    debugger;
     // extent in minX, minY, maxX, maxY order
+    const northBreakpoint = layer.features[0].geometry.coordinates[0][0][1];
     for (let i = 0; i < layer.features.length; i += 1) {
       north = layer.features[i].geometry.coordinates[0][0][1];
-      south = layer.features[i].geometry.coordinates[0][2][1];
+      south = layer.features[i].geometry.coordinates[0][1][1];
       west = layer.features[i].geometry.coordinates[0][0][0];
-      east = layer.features[i].geometry.coordinates[0][1][0];
-      /*
-      west = layer.features[i].geometry.coordinates[0][1][0];
-      north = layer.features[i].geometry.coordinates[0][1][1];
-      south = layer.features[i].geometry.coordinates[0][2][1];
-      */
-      if (checkNorth === undefined) {
-        checkNorth = north;
-      } else if (checkNorth > north) {
+      east = layer.features[i].geometry.coordinates[0][2][0];
+      if (north === northBreakpoint && i > 0) {
         break;
-      } else {
-        horizontal.push([east, north]);
+      }
+      else {
+        vertical.push([west, (north - ((north - south) / 2))]);
       }
     }
-    for (let j = 0; j < layer.features.length; j += horizontal.length) {
-      north = layer.features[j].geometry.coordinates[0][0][0];
-      west = layer.features[j].geometry.coordinates[0][0][1];
-      south = layer.features[j].geometry.coordinates[0][2][0];
-      vertical.push([(north - ((north - south) / 2)), (west - 10)]);
+    for (let j = 0; j < layer.features.length; j += vertical.length) {
+      north = layer.features[j].geometry.coordinates[0][0][1];
+      south = layer.features[j].geometry.coordinates[0][1][1];
+      west = layer.features[j].geometry.coordinates[0][0][0];
+      east = layer.features[j].geometry.coordinates[0][2][0];
+      horizontal.push([(west + (east - west) / 2), north]);
     }
-    debugger;
-    this.axisCoordinates = { horizontal, vertical };
-    return this.axisCoordinates;
+    this.labelAxisCoordinates = { horizontal, vertical };
+    return this.labelAxisCoordinates;
   }
 
   // Adds horizontal and vertical labels on x- and y-axis.
   createGridLabels(grid) {
-    const bounds = this.getAxisCoordinates(grid);
+    const bounds = this.getLabelAxisCoordinates(grid);
     const features = [];
     let horizontalIndex = 64;
     for (let i = 0; i < bounds.horizontal.length; i += 1) {
@@ -106,7 +101,7 @@ class GridToolControl {
       );
     }
     for (let j = 0; j < bounds.vertical.length; j += 1) {
-      const verticalLabel = j.toString();
+      const verticalLabel = (j + 1).toString();
       features.push(
         new Feature({
           geometry: new Point(bounds.vertical[j]),
@@ -115,32 +110,16 @@ class GridToolControl {
         })
       );
     }
-    debugger;
-
-    const emystyle = new ol.Style({
-      image: new ol.Circle({
-        radius: 7,
-        fill: new ol.Fill({ color: 'black' }),
-        stroke: new ol.Stroke({
-          color: [255, 0, 0], width: 2
-        })
-      })
-    });
-
-
     const source = new VectorSource({
       features
     });
     const vectorLayer = new VectorLayer({
       source,
       style(feature) {
-        debugger;
-        //  const zoom = this.map.getView().getZoom();
-        //  const fontSize = zoom * 10; // arbitrary value
         return [
           new ol.Style({
             text: new ol.Text({
-              font: '12px Calibri,sans-serif',
+              font: '14px Calibri,sans-serif',
               fill: new ol.Fill({ color: '#000' }),
               stroke: new ol.Stroke({
                 color: '#fff', width: 2
@@ -160,8 +139,8 @@ class GridToolControl {
 
   // Creates and return SquareGrids as vectordata.
   createGridLayer() {
-    const u = this.options.units;
-    const squareGrids = squaregrid(this.options.bbox, this.options.cellside, { u });
+    const units = this.options.units;
+    const squareGrids = squaregrid(this.options.bbox, this.options.cellside, { units });
     const projected = projection.toMercator(squareGrids);
     const source = new VectorSource({
       features: new GeoJSON().readFeatures(projected)
@@ -185,7 +164,6 @@ class GridToolControl {
       this.map.addLayer(this.gridLayer);
       this.map.addLayer(this.gridLabels);
       this.viewer.setRotation(0);
-      // eslint-disable-next-line no-underscore-dangle
       this.viewer.options_.enableRotation = false;
     }
     return this.gridLayer;
@@ -195,7 +173,6 @@ class GridToolControl {
     if (this.gridLayer !== undefined) {
       this.map.removeLayer(this.gridLayer);
       this.map.removeLayer(this.gridLabels);
-      // eslint-disable-next-line no-underscore-dangle
       this.viewer.options_.enableRotation = true;
       this.gridLayer = undefined;
     }
