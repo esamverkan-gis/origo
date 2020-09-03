@@ -78,13 +78,20 @@ const GridToolMenu = function gridToolMenu(options = {}) {
     });
   }
 
-  function removeGridArea(e) {
-    debugger;
+  function removeGridArea() {
+    try {
+      map.removeInteraction(draw);
+      source.clear();
+      map.removeLayer(vector);
+      draw = undefined;
       gridtoolMenuContainer.style.display = 'none';
       gridcontrol.remove();
       gridcontrol = undefined;
-    
-  };
+      checked = !checked;
+    } catch (e) {
+      console.log('');
+    }
+  }
 
   const toggleGridLayerMenu = () => {
     gridColorInput = document.getElementById('printmap-gridtool-colorpicker');
@@ -94,17 +101,12 @@ const GridToolMenu = function gridToolMenu(options = {}) {
     gridSizeOption = document.getElementById('printmap-gridtool-gridsize-input');
     gridUnitOption = document.getElementById('printmap-gridtool-unit-options');
     const drawBtn = document.getElementById('printmap-gridtool-draw-button');
-    const removeBtn = document.getElementById('printmap-gridtool-remove-button');
-    debugger;
     drawBtn.addEventListener('click', drawGridArea);
-    removeBtn.addEventListener('click', removeGridArea);
     gridtoolMenuContainer = document.getElementById('printmap-gridtool-menu-container');
     if (checked) {
       gridtoolMenuContainer.style.display = 'block';
     } else {
-      gridcontrol.remove();
-      gridcontrol = undefined;
-      gridtoolMenuContainer.style.display = 'none';
+      removeGridArea();
     }
   };
 
