@@ -55,7 +55,6 @@ class GridToolControl {
   getLabelAxisCoordinates(layer) {
     const horizontal = [];
     const vertical = [];
-    let checkNorth;
     let north;
     let west;
     let east;
@@ -119,7 +118,7 @@ class GridToolControl {
         return [
           new ol.Style({
             text: new ol.Text({
-              font: '14px Calibri,sans-serif',
+              font: '16px Calibri,sans-serif',
               fill: new ol.Fill({ color: '#000' }),
               stroke: new ol.Stroke({
                 color: '#fff', width: 2
