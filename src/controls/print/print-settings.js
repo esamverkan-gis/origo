@@ -6,7 +6,6 @@ import CustomSizeControl from './custom-size-control';
 import DescriptionControl from './description-control';
 import MarginControl from './margin-control';
 import GridToolMenu from './gridtool-control/gridtool-menu';
-import GridToolControl from './gridtool-control/gridtool-control';
 import OrientationControl from './orientation-control';
 import SizeControl from './size-control';
 import TitleControl from './title-control';
@@ -91,7 +90,7 @@ const PrintSettings = function PrintSettings({
       const descriptionControl = DescriptionControl();
       const marginControl = MarginControl({ checked: true });
       const scaleControl = ScaleControl({ checked: showScaleText, map, viewer });
-      const gridToolControl = GridToolControl({ checked: false, map, viewer });
+      const gridToolControl = GridToolMenu({ checked: false, map, viewer });
       const createdControl = CreatedControl({ checked: showCreated });
       const resolutionDropdown = Dropdown({
         text: 150,
