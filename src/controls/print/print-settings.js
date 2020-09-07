@@ -5,7 +5,7 @@ import printSettingsTemplate from './print-settings.template';
 import CustomSizeControl from './custom-size-control';
 import DescriptionControl from './description-control';
 import MarginControl from './margin-control';
-import GridToolControl from './gridtool-control';
+import GridToolControl from './gridtool-control/gridtool-control';
 import OrientationControl from './orientation-control';
 import SizeControl from './size-control';
 import TitleControl from './title-control';
