@@ -47,11 +47,9 @@ export default function printTemplate({
       ${gridToolControl.render()}
     </div>
     <div class="padding-top-large"></div>
-<<<<<<< HEAD
     <h6>Upplösning (dpi)</h6>
     <div class="flex padding-right-small o-print-resolution-dropdown">
       ${resolutionDropdown.render()}
-=======
     <div class="flex padding-right-small" id="printmap-gridtool-menu-container">
     <label for="colorpicker">Färg</label>
     <input type="color" id="printmap-gridtool-colorpicker" name="colorpicker">
@@ -64,7 +62,6 @@ export default function printTemplate({
     </select>
     <br/>
     <button class="grow light text-smaller padding-left-large o-tooltip active" id="printmap-gridtool-draw-button">Rita rutnät</button>
->>>>>>> feature/add-gridtool-for-printmap
     </div>
     <div class="padding-top"></div>
   </div>`;

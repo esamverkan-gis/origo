@@ -5,10 +5,7 @@ import printSettingsTemplate from './print-settings.template';
 import CustomSizeControl from './custom-size-control';
 import DescriptionControl from './description-control';
 import MarginControl from './margin-control';
-<<<<<<< HEAD
-=======
 import GridToolMenu from './gridtool-control/gridtool-menu';
->>>>>>> feature/add-gridtool-for-printmap
 import GridToolControl from './gridtool-control/gridtool-control';
 import OrientationControl from './orientation-control';
 import SizeControl from './size-control';
@@ -93,12 +90,8 @@ const PrintSettings = function PrintSettings({
       const titleControl = TitleControl({});
       const descriptionControl = DescriptionControl();
       const marginControl = MarginControl({ checked: true });
-<<<<<<< HEAD
       const scaleControl = ScaleControl({ checked: showScaleText, map, viewer });
       const gridToolControl = GridToolControl({ checked: false, map, viewer });
-=======
-      const gridToolControl = GridToolMenu({ checked: false, map, viewer });
->>>>>>> feature/add-gridtool-for-printmap
       const createdControl = CreatedControl({ checked: showCreated });
       const resolutionDropdown = Dropdown({
         text: 150,
